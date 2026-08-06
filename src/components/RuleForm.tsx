@@ -187,7 +187,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
           disabled={!canSave}
           className={`rounded-lg px-4 py-2 ${
             canSave
-              ? "bg-accent active:bg-amber-600"
+              ? "bg-accent active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
               : "bg-surface-secondary dark:bg-surface-dark-secondary"
           }`}
         >

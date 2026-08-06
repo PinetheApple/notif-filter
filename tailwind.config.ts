@@ -23,6 +23,10 @@ const config: Config = {
           // amber-700 as base: white text on amber-600 fails WCAG (3.2:1)
           DEFAULT: "#b45309",
           dark: "#f59e0b",
+          pressed: {
+            DEFAULT: "#92400e",
+            dark: "#d97706",
+          },
           text: {
             DEFAULT: "#ffffff",
             dark: "#09090b",

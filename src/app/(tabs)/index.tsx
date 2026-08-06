@@ -1,9 +1,10 @@
 import { View, Pressable, FlatList, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import { Plus, Trash, CaretUp, CaretDown } from "phosphor-react-native";
+import { Trash, CaretUp, CaretDown } from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
 
 import { EmptyState } from "@/components/ui";
+import { AddRuleFab } from "@/components/AddRuleFab";
 import { RuleCard } from "@/components/RuleCard";
 import { useRulesStore } from "@/stores/rules";
 import { useSettingsStore } from "@/stores/settings";
@@ -70,12 +71,7 @@ export default function RulesScreen() {
           }
         />
 
-        <Pressable
-          onPress={handleAdd}
-          className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-xl bg-accent shadow-lg active:scale-95 dark:bg-accent-dark"
-        >
-          <Plus size={26} weight="regular" color={p.accentText} />
-        </Pressable>
+        <AddRuleFab onPress={handleAdd} scheme={scheme} />
       </View>
     );
   }
@@ -131,12 +127,7 @@ export default function RulesScreen() {
         )}
       />
 
-      <Pressable
-        onPress={handleAdd}
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-xl bg-accent shadow-lg active:scale-95 dark:bg-accent-dark"
-      >
-        <Plus size={26} weight="regular" color={p.accentText} />
-      </Pressable>
+      <AddRuleFab onPress={handleAdd} scheme={scheme} />
     </View>
   );
 }

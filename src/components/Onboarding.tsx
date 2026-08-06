@@ -128,7 +128,7 @@ export function Onboarding({ scheme }: { scheme: ColorScheme }) {
           ) : null}
           <Pressable
             onPress={isLastStep ? handleDone : handleNext}
-            className="flex-1 items-center rounded-lg bg-accent px-4 py-3 active:bg-amber-800 dark:bg-accent-dark dark:active:bg-amber-600"
+            className="flex-1 items-center rounded-lg bg-accent px-4 py-3 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
           >
             <Text className="text-sm font-medium text-accent-text dark:text-accent-text-dark">
               {isLastStep ? "Done" : "Next"}

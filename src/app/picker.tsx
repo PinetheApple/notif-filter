@@ -14,6 +14,7 @@ import { CaretLeft, Check, MagnifyingGlass } from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
 
 import { usePickerStore } from "@/stores/picker";
+import { EmptyState } from "@/components/ui";
 import { palette, COLORS } from "@/constants/colors";
 import * as NotifFilter from "../../modules/notif-filter/src/index";
 
@@ -90,7 +91,7 @@ export default function AppPickerScreen() {
         </Text>
         <Pressable
           onPress={handleConfirm}
-          className="rounded-lg bg-accent px-4 py-2 active:bg-amber-600"
+          className="rounded-lg bg-accent px-4 py-2 active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
         >
           <Text className="text-sm font-medium text-accent-text">
             Done ({selected.length})
@@ -140,6 +141,12 @@ export default function AppPickerScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.package}
+        ListEmptyComponent={
+          <EmptyState
+            title="No apps found"
+            description="Try a different search term or filter."
+          />
+        }
         renderItem={({ item }) => {
           const isSelected = selected.includes(item.package);
           const hasPosted = seenPackages.has(item.package);

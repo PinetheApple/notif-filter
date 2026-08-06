@@ -24,12 +24,8 @@ export const COLORS = {
     dark: "#f59e0b",
   },
   destructive: {
-    light: "#ef4444",
+    light: "#dc2626",
     dark: "#f87171",
-  },
-  warning: {
-    light: "#92400e",
-    dark: "#fde68a",
   },
   switch: {
     trackOff: "#d4d4d8",
@@ -49,6 +45,5 @@ export function palette(scheme: ColorScheme) {
       scheme === "dark" ? COLORS.surface.dark : COLORS.surface.DEFAULT,
     destructive:
       scheme === "dark" ? COLORS.destructive.dark : COLORS.destructive.light,
-    warning: scheme === "dark" ? COLORS.warning.dark : COLORS.warning.light,
   };
 }

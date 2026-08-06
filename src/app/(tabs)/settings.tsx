@@ -215,7 +215,7 @@ export default function SettingsScreen() {
               action={
                 <Pressable
                   onPress={handleSendTest}
-                  className="rounded bg-accent px-3 py-1.5 active:bg-amber-800 dark:bg-accent-dark dark:active:bg-amber-600"
+                  className="rounded bg-accent px-3 py-1.5 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
                 >
                   <Text className="text-xs font-medium text-accent-text dark:text-accent-text-dark">
                     Send
@@ -266,7 +266,7 @@ export default function SettingsScreen() {
                 <View className="flex-row gap-2">
                   <Pressable
                     onPress={() => handleImportExecute("replace")}
-                    className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-amber-800 dark:bg-accent-dark dark:active:bg-amber-600"
+                    className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
                   >
                     <Text className="text-center text-xs font-medium text-accent-text dark:text-accent-text-dark">
                       Replace all

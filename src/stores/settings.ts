@@ -90,7 +90,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         loaded: true,
       });
     } catch {
-      set({ loaded: true });
+      // Fresh installs get default JSON from native, not an error — never
+      // re-show onboarding after completion because a read failed.
+      set({ loaded: true, onboardingDone: true });
     }
   },
 }));
