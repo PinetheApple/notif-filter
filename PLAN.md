@@ -197,7 +197,7 @@ onboarding/permission gate, rule editor, app picker.
 | # | Phase | Status | Issue |
 |---|---|---|---|
 | M0 | Scaffold | ✅ Done | — |
-| M1 | Native core + permission flow | 🔲 | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
+| M1 | Native core + permission flow | ✅ | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
 
 Each milestone is developed on a branch (`m<N>-<slug>`) and merged to main via PR.
 | M2 | Rule engine + RuleStore + app inventory | 🔲 | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
