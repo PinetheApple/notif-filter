@@ -1,6 +1,6 @@
 package app.notiffilter
 
-import android.os.Bundle
+import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -12,6 +12,18 @@ class NotifFilterService : NotificationListenerService() {
         var isConnected: Boolean = false
             private set
         var moduleRef: NotifFilterModule? = null
+
+        /** Packages that have posted at least one notification since service start. */
+        val seenPackages: MutableSet<String> = mutableSetOf()
+    }
+
+    private lateinit var ruleStore: RuleStore
+
+    override fun onCreate() {
+        super.onCreate()
+        ruleStore = RuleStore(this)
+        ruleStore.onChange = { Log.i(TAG, "Rules/settings reloaded (${ruleStore.compiledRules.size} compiled rules)") }
+        Log.i(TAG, "Service created, ${ruleStore.compiledRules.size} rules loaded")
     }
 
     override fun onListenerConnected() {
@@ -34,31 +46,41 @@ class NotifFilterService : NotificationListenerService() {
 
         val notification = sbn.notification
         val extras = notification.extras
+        val isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0
 
-        val title = extras.getCharSequence("android.title")?.toString() ?: ""
-        val text = extras.getCharSequence("android.text")?.toString() ?: ""
-        val subText = extras.getCharSequence("android.subText")?.toString() ?: ""
-        val infoText = extras.getCharSequence("android.infoText")?.toString() ?: ""
-        val summaryText = extras.getCharSequence("android.summaryText")?.toString() ?: ""
+        seenPackages.add(sbn.packageName)
 
-        val textLines = extras.getCharSequenceArray("android.textLines")
-        val textLinesStr = textLines?.joinToString(" | ") ?: ""
+        val content = NotificationContent.fromExtras(sbn.packageName, extras, isOngoing)
 
-        val bigText = extras.getCharSequence("android.bigText")?.toString() ?: ""
-
-        Log.i(TAG, "Notification posted — " +
-                "app=${sbn.packageName} " +
-                "title=$title " +
-                "text=$text " +
-                "subText=$subText " +
-                "infoText=$infoText " +
-                "summaryText=$summaryText " +
-                "textLines=$textLinesStr " +
-                "bigText=$bigText " +
-                "postTime=${sbn.postTime} " +
-                "ongoing=${notification.flags and android.app.Notification.FLAG_ONGOING_EVENT != 0} " +
-                "groupKey=${notification.group ?: ""} " +
-                "channelId=${notification.channelId ?: ""}"
+        val settings = ruleStore.settings
+        val result = RuleEngine.evaluate(
+            notification = content,
+            compiledRules = ruleStore.compiledRules,
+            defaultPolicy = settings.defaultPolicy,
+            filterOngoing = settings.filterOngoing
         )
+
+        when (result.decision) {
+            Decision.BLOCK -> {
+                cancelNotification(sbn.key)
+                Log.i(TAG, "BLOCKED — app=${sbn.packageName} " +
+                        "title=${content.title} " +
+                        "ruleId=${result.ruleId ?: "default-policy"} " +
+                        "match=${result.matchedSegment ?: "-"}")
+                // TODO M4: insert into blocked log (SQLite)
+            }
+            Decision.ALLOW -> {
+                Log.i(TAG, "ALLOW — app=${sbn.packageName} " +
+                        "title=${content.title} " +
+                        "ruleId=${result.ruleId ?: "default"} " +
+                        "ongoing=$isOngoing")
+                // TODO M4: insert into history log
+            }
+        }
+    }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        super.onNotificationRemoved(sbn)
+        // No action needed in v1
     }
 }

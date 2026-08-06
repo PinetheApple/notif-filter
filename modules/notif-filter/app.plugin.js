@@ -4,9 +4,8 @@ const {
   AndroidConfig,
 } = require('@expo/config-plugins');
 
-const { addPermission, removePermissions, getMainApplicationOrThrow } =
-  AndroidConfig.Permissions;
-const { ensureToolsAvailable } = AndroidConfig.Manifest;
+const { addPermission, removePermissions } = AndroidConfig.Permissions;
+const { ensureToolsAvailable, getMainApplicationOrThrow } = AndroidConfig.Manifest;
 
 function withNotifFilterService(config) {
   return withAndroidManifest(config, async (config) => {
