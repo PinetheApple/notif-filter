@@ -4,6 +4,7 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import java.util.UUID
 
 class NotifFilterService : NotificationListenerService() {
 
@@ -18,11 +19,15 @@ class NotifFilterService : NotificationListenerService() {
     }
 
     private lateinit var ruleStore: RuleStore
+    private lateinit var historyStore: HistoryStore
 
     override fun onCreate() {
         super.onCreate()
         ruleStore = RuleStore(this)
-        ruleStore.onChange = { Log.i(TAG, "Rules/settings reloaded (${ruleStore.compiledRules.size} compiled rules)") }
+        ruleStore.onChange = {
+            Log.i(TAG, "Rules/settings reloaded (${ruleStore.compiledRules.size} compiled rules)")
+        }
+        historyStore = HistoryStore(this)
         Log.i(TAG, "Service created, ${ruleStore.compiledRules.size} rules loaded")
     }
 
@@ -60,26 +65,50 @@ class NotifFilterService : NotificationListenerService() {
             filterOngoing = settings.filterOngoing
         )
 
+        val now = System.currentTimeMillis()
+        val appLabel = resolveAppLabel(sbn.packageName)
+        val ruleLabel = result.ruleId?.let { rid ->
+            ruleStore.compiledRules.find { it.rule.id == rid }?.rule?.label
+        }
+
+        val entry = HistoryEntry(
+            id = UUID.randomUUID().toString(),
+            packageName = sbn.packageName,
+            appLabel = appLabel,
+            title = content.title,
+            text = content.text,
+            disposition = if (result.decision == Decision.BLOCK) "blocked" else "shown",
+            ruleId = result.ruleId,
+            ruleLabel = ruleLabel,
+            matchedSegment = result.matchedSegment,
+            timestamp = now,
+            postTime = sbn.postTime
+        )
+
         when (result.decision) {
             Decision.BLOCK -> {
                 cancelNotification(sbn.key)
-                Log.i(TAG, "BLOCKED — app=${sbn.packageName} " +
-                        "title=${content.title} " +
-                        "ruleId=${result.ruleId ?: "default-policy"} " +
-                        "match=${result.matchedSegment ?: "-"}")
-                // TODO M4: insert into blocked log (SQLite)
+                Log.i(TAG, "BLOCKED — app=$appLabel title=${content.title}")
             }
             Decision.ALLOW -> {
-                Log.i(TAG, "ALLOW — app=${sbn.packageName} " +
-                        "title=${content.title} " +
-                        "ruleId=${result.ruleId ?: "default"} " +
-                        "ongoing=$isOngoing")
-                // TODO M4: insert into history log
+                Log.i(TAG, "ALLOW — app=$appLabel title=${content.title}")
             }
         }
+
+        historyStore.insert(entry)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
+    }
+
+    private fun resolveAppLabel(packageName: String): String {
+        return try {
+            packageManager.getApplicationLabel(
+                packageManager.getApplicationInfo(packageName, 0)
+            ).toString()
+        } catch (_: Exception) {
+            packageName
+        }
     }
 }

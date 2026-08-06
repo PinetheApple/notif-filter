@@ -7,7 +7,7 @@ export type Rule = {
   id: string;
   label: string;
   enabled: boolean;
-  scopeType: "all" | "packages";
+  scopeKind: "all" | "packages";
   scopePackages: string[];
   pattern: string;
   caseInsensitive: boolean;

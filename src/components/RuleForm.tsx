@@ -76,8 +76,8 @@ export function RuleForm({ initialRule, scheme }: Props) {
   const [action, setAction] = useState<RuleAction>(
     initialRule?.action ?? "deny",
   );
-  const [scopeType, setScopeType] = useState<"all" | "packages">(
-    initialRule?.scopeType ?? "all",
+  const [scopeKind, setScopeKind] = useState<"all" | "packages">(
+    initialRule?.scopeKind ?? "all",
   );
   const [scopePackages, setScopePackages] = useState<string[]>(
     initialRule?.scopePackages ?? [],
@@ -119,22 +119,22 @@ export function RuleForm({ initialRule, scheme }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      if (scopeType === "packages") {
+      if (scopeKind === "packages") {
         setScopePackages(usePickerStore.getState().selected);
       }
-    }, [scopeType]),
+    }, [scopeKind]),
   );
 
   function openAppPicker() {
     usePickerStore
       .getState()
-      .setSelected(scopeType === "packages" ? scopePackages : []);
+      .setSelected(scopeKind === "packages" ? scopePackages : []);
     router.push("/picker");
   }
 
   function handleSave() {
     const packages =
-      scopeType === "packages"
+      scopeKind === "packages"
         ? selected.length > 0
           ? selected
           : scopePackages
@@ -147,7 +147,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
         caseInsensitive,
         field,
         action,
-        scopeType,
+        scopeKind,
         scopePackages: packages,
       });
     } else {
@@ -160,7 +160,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
         caseInsensitive,
         field,
         action,
-        scopeType,
+        scopeKind,
         scopePackages: packages,
         updatedAt: Date.now(),
       });
@@ -221,10 +221,10 @@ export function RuleForm({ initialRule, scheme }: Props) {
           </Text>
           <Segment
             options={["all", "packages"] as const}
-            value={scopeType}
-            onChange={(v) => setScopeType(v)}
+            value={scopeKind}
+            onChange={(v) => setScopeKind(v)}
           />
-          {scopeType === "packages" ? (
+          {scopeKind === "packages" ? (
             <Pressable
               onPress={openAppPicker}
               className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
