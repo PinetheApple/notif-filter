@@ -201,7 +201,7 @@ onboarding/permission gate, rule editor, app picker.
 
 Each milestone is developed on a branch (`m<N>-<slug>`) and merged to main via PR.
 | M2 | Rule engine + RuleStore + app inventory | ✅ | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
-| M3 | Rules UI: editor, picker, regex test | 🔄 | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
+| M3 | Rules UI: editor, picker, regex test | ✅ | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
 | M4 | History: SQLite log, restore | ✅ | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
 | M5 | Polish: onboarding, anti-slop, e2e, APK | 🔲 | [#5](https://github.com/PinetheApple/notif-filter/issues/5) |
 
