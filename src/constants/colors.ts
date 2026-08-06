@@ -16,20 +16,24 @@ export const COLORS = {
     dark: "#fafafa",
   },
   muted: {
-    light: "#71717a",
+    light: "#52525b",
     dark: "#a1a1aa",
   },
   accent: {
-    DEFAULT: "#d97706",
+    DEFAULT: "#b45309",
     dark: "#f59e0b",
   },
   destructive: {
     light: "#ef4444",
     dark: "#f87171",
   },
+  warning: {
+    light: "#92400e",
+    dark: "#fde68a",
+  },
   switch: {
     trackOff: "#d4d4d8",
-    trackOn: "#d97706",
+    trackOn: "#b45309",
     thumb: "#ffffff",
   },
 } as const;
@@ -45,5 +49,6 @@ export function palette(scheme: ColorScheme) {
       scheme === "dark" ? COLORS.surface.dark : COLORS.surface.DEFAULT,
     destructive:
       scheme === "dark" ? COLORS.destructive.dark : COLORS.destructive.light,
+    warning: scheme === "dark" ? COLORS.warning.dark : COLORS.warning.light,
   };
 }

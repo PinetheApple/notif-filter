@@ -1,27 +1,19 @@
-import { useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  FlatList,
-  Alert,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Trash } from 'phosphor-react-native';
-import { useColorScheme } from 'nativewind';
+import { useEffect, useCallback } from "react";
+import { View, Text, Pressable, FlatList, Alert, Platform } from "react-native";
+import { useRouter } from "expo-router";
+import { Trash } from "phosphor-react-native";
+import { useColorScheme } from "nativewind";
 
-import { EmptyState } from '@/components/ui';
-import { HistoryItem } from '@/components/HistoryItem';
-import { useHistoryStore } from '@/stores/history';
-import { useRulesStore } from '@/stores/rules';
-import { palette } from '@/constants/colors';
+import { EmptyState } from "@/components/ui";
+import { HistoryItem } from "@/components/HistoryItem";
+import { useHistoryStore } from "@/stores/history";
+import { useRulesStore } from "@/stores/rules";
+import { palette } from "@/constants/colors";
 
 export default function HistoryScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const scheme = colorScheme === "dark" ? "dark" : "light";
   const p = palette(scheme);
 
   const entries = useHistoryStore((s) => s.entries);
@@ -45,22 +37,22 @@ export default function HistoryScreen() {
   }, [hasMore, entries, loadPage]);
 
   const handleClearAll = () => {
-    Alert.alert('Clear history', 'Delete all entries? This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: clearAll },
+    Alert.alert("Clear history", "Delete all entries? This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear", style: "destructive", onPress: clearAll },
     ]);
   };
 
   function handleRestore(id: string) {
-    if (Platform.OS === 'android' && Platform.Version >= 33) {
-      const { PermissionsAndroid } = require('react-native');
-      PermissionsAndroid.request(
-        'android.permission.POST_NOTIFICATIONS',
-      ).then((granted: string) => {
-        if (granted === 'granted') {
-          restoreEntry(id);
-        }
-      });
+    if (Platform.OS === "android" && Platform.Version >= 33) {
+      const { PermissionsAndroid } = require("react-native");
+      PermissionsAndroid.request("android.permission.POST_NOTIFICATIONS").then(
+        (granted: string) => {
+          if (granted === "granted") {
+            restoreEntry(id);
+          }
+        },
+      );
     } else {
       restoreEntry(id);
     }
@@ -72,12 +64,12 @@ export default function HistoryScreen() {
       id,
       label: `Block ${label}`,
       enabled: true,
-      scopeKind: 'packages',
+      scopeKind: "packages",
       scopePackages: [pkg],
-      pattern: '.*',
+      pattern: ".*",
       caseInsensitive: true,
-      field: 'any',
-      action: 'deny',
+      field: "any",
+      action: "deny",
       updatedAt: Date.now(),
     });
     router.push(`/rule/${id}`);
@@ -89,12 +81,12 @@ export default function HistoryScreen() {
       id,
       label: `Allow ${label}`,
       enabled: true,
-      scopeKind: 'packages',
+      scopeKind: "packages",
       scopePackages: [pkg],
-      pattern: '.*',
+      pattern: ".*",
       caseInsensitive: true,
-      field: 'any',
-      action: 'allow',
+      field: "any",
+      action: "allow",
       updatedAt: Date.now(),
     });
     router.push(`/rule/${id}`);
@@ -102,25 +94,25 @@ export default function HistoryScreen() {
 
   if (!loaded) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
-        <EmptyState title="Loading..." description="" />
-      </SafeAreaView>
+      <View className="flex-1 bg-white dark:bg-surface-dark">
+        <EmptyState title="Loading..." />
+      </View>
     );
   }
 
   if (entries.length === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
+      <View className="flex-1 bg-white dark:bg-surface-dark">
         <EmptyState
           title="No notifications yet"
-          description="Filtered notifications will appear here."
+          description="Notifications the filter sees will appear here, marked shown or blocked."
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
+    <View className="flex-1 bg-white dark:bg-surface-dark">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <Text className="text-lg font-medium text-surface-dark dark:text-white">
@@ -131,7 +123,9 @@ export default function HistoryScreen() {
           className="flex-row items-center gap-1 rounded px-3 py-1.5 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
         >
           <Trash size={16} weight="regular" color={p.destructive} />
-          <Text className="text-sm text-red-500">Clear all</Text>
+          <Text className="text-sm text-red-600 dark:text-red-400">
+            Clear all
+          </Text>
         </Pressable>
       </View>
 
@@ -152,6 +146,6 @@ export default function HistoryScreen() {
           />
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 }

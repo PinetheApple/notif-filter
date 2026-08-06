@@ -7,9 +7,10 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  Linking,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Export, FileArrowDown } from "phosphor-react-native";
+import Constants from "expo-constants";
+import { ArrowSquareOut, Export, FileArrowDown } from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
 
 import { ListRow, ListSection, Separator } from "@/components/ui";
@@ -17,6 +18,9 @@ import { useSettingsStore } from "@/stores/settings";
 import { useRulesStore, type Rule } from "@/stores/rules";
 import { palette, COLORS } from "@/constants/colors";
 import * as NotifFilter from "../../../modules/notif-filter/src/index";
+
+const REPO_URL = "https://github.com/PinetheApple/notif-filter";
+const APP_VERSION = Constants.expoConfig?.version ?? "unknown";
 
 function SegmentedPicker<T extends string>({
   options,
@@ -35,14 +39,14 @@ function SegmentedPicker<T extends string>({
           onPress={() => onChange(opt)}
           className={`px-3 py-1.5 ${
             opt === value
-              ? "bg-accent"
+              ? "bg-accent dark:bg-accent-dark"
               : "bg-surface-secondary dark:bg-surface-dark-secondary"
           }`}
         >
           <Text
             className={`text-xs font-medium ${
               opt === value
-                ? "text-accent-text"
+                ? "text-accent-text dark:text-accent-text-dark"
                 : "text-surface-dark dark:text-white"
             }`}
           >
@@ -89,8 +93,8 @@ export default function SettingsScreen() {
   }
 
   function handleThemeChange(v: string) {
-    setColorScheme(v as 'system' | 'light' | 'dark');
-    setThemePreference(v as 'system' | 'light' | 'dark');
+    setColorScheme(v as "system" | "light" | "dark");
+    setThemePreference(v as "system" | "light" | "dark");
   }
 
   function handleSendTest() {
@@ -109,6 +113,10 @@ export default function SettingsScreen() {
   function handleImportTap() {
     setImportVisible(!importVisible);
     setImportJson("");
+  }
+
+  function handleOpenRepo() {
+    Linking.openURL(REPO_URL);
   }
 
   function handleImportExecute(mode: "merge" | "replace") {
@@ -133,7 +141,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
+    <View className="flex-1 bg-white dark:bg-surface-dark">
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="mt-6">
           <ListSection>
@@ -207,9 +215,9 @@ export default function SettingsScreen() {
               action={
                 <Pressable
                   onPress={handleSendTest}
-                  className="rounded bg-accent px-3 py-1.5 active:bg-amber-600"
+                  className="rounded bg-accent px-3 py-1.5 active:bg-amber-800 dark:bg-accent-dark dark:active:bg-amber-600"
                 >
-                  <Text className="text-xs font-medium text-accent-text">
+                  <Text className="text-xs font-medium text-accent-text dark:text-accent-text-dark">
                     Send
                   </Text>
                 </Pressable>
@@ -258,15 +266,15 @@ export default function SettingsScreen() {
                 <View className="flex-row gap-2">
                   <Pressable
                     onPress={() => handleImportExecute("replace")}
-                    className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-amber-600"
+                    className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-amber-800 dark:bg-accent-dark dark:active:bg-amber-600"
                   >
-                    <Text className="text-center text-xs font-medium text-accent-text">
+                    <Text className="text-center text-xs font-medium text-accent-text dark:text-accent-text-dark">
                       Replace all
                     </Text>
                   </Pressable>
                   <Pressable
                     onPress={() => handleImportExecute("merge")}
-                    className="flex-1 rounded bg-surface-secondary px-3 py-1.5 active:bg-surface-dark-secondary dark:bg-surface-dark-secondary dark:active:bg-surface-secondary"
+                    className="flex-1 rounded bg-surface-secondary px-3 py-1.5 active:bg-surface-tertiary dark:bg-surface-dark-secondary dark:active:bg-surface-dark-tertiary"
                   >
                     <Text className="text-center text-xs font-medium text-surface-dark dark:text-white">
                       Merge
@@ -276,8 +284,37 @@ export default function SettingsScreen() {
               </View>
             ) : null}
           </ListSection>
+
+          <ListSection>
+            <ListRow
+              label="Version"
+              action={
+                <Text className="text-sm text-muted dark:text-muted-dark">
+                  {APP_VERSION}
+                </Text>
+              }
+            />
+            <Separator />
+            <ListRow
+              label="Privacy"
+              description="All processing happens on this device. Notification content never leaves it."
+            />
+            <Separator />
+            <Pressable
+              onPress={handleOpenRepo}
+              className="active:bg-surface-tertiary dark:active:bg-surface-dark-tertiary"
+            >
+              <ListRow
+                label="Source code"
+                description="github.com/PinetheApple/notif-filter"
+                action={
+                  <ArrowSquareOut size={16} weight="regular" color={p.muted} />
+                }
+              />
+            </Pressable>
+          </ListSection>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

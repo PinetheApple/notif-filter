@@ -68,14 +68,7 @@ class RuleStore(context: Context) {
         onChange?.invoke()
     }
 
-    fun settingsToJson(): String {
-        val obj = JSONObject()
-        obj.put("defaultPolicy", settings.defaultPolicy)
-        obj.put("filterOngoing", settings.filterOngoing)
-        obj.put("logSize", settings.logSize)
-        obj.put("theme", settings.theme)
-        return obj.toString()
-    }
+    fun settingsToJson(): String = settingsToJson(settings)
 
     private fun loadSettings(): Settings {
         val raw = prefs.getString(KEY_SETTINGS, null) ?: return Settings(
@@ -127,8 +120,19 @@ class RuleStore(context: Context) {
                 defaultPolicy = obj.optString("defaultPolicy", "allow"),
                 filterOngoing = obj.optBoolean("filterOngoing", false),
                 logSize = obj.optInt("logSize", 500),
-                theme = obj.optString("theme", "system")
+                theme = obj.optString("theme", "system"),
+                onboardingDone = obj.optBoolean("onboardingDone", false)
             )
+        }
+
+        fun settingsToJson(settings: Settings): String {
+            val obj = JSONObject()
+            obj.put("defaultPolicy", settings.defaultPolicy)
+            obj.put("filterOngoing", settings.filterOngoing)
+            obj.put("logSize", settings.logSize)
+            obj.put("theme", settings.theme)
+            obj.put("onboardingDone", settings.onboardingDone)
+            return obj.toString()
         }
 
         fun ruleToJson(rule: Rule): JSONObject {

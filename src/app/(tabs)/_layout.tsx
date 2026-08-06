@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Tabs } from "expo-router";
 import {
   ClockCounterClockwise,
@@ -15,8 +16,13 @@ export default function TabLayout() {
   const scheme = colorScheme === "dark" ? "dark" : "light";
   const p = palette(scheme);
 
+  // Top inset lives here (not in each tab screen) so the permission banner
+  // clears the status bar under Android 16 edge-to-edge.
   return (
-    <View className="flex-1">
+    <SafeAreaView
+      edges={["top"]}
+      className="flex-1 bg-white dark:bg-surface-dark"
+    >
       <PermissionBanner scheme={scheme} />
       <Tabs
         screenOptions={{
@@ -69,6 +75,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </View>
+    </SafeAreaView>
   );
 }

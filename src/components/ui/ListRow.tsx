@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text } from "react-native";
 
 export function ListRow({
   label,
@@ -7,7 +7,7 @@ export function ListRow({
 }: {
   label: string;
   description?: string;
-  action: React.ReactNode;
+  action?: React.ReactNode;
 }) {
   return (
     <View className="flex-row items-center justify-between px-4 py-3">
@@ -21,16 +21,12 @@ export function ListRow({
           </Text>
         ) : null}
       </View>
-      {action}
+      {action ?? null}
     </View>
   );
 }
 
-export function ListSection({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function ListSection({ children }: { children: React.ReactNode }) {
   return (
     <View className="mx-4 mb-6 overflow-hidden rounded-lg bg-surface-secondary dark:bg-surface-dark-secondary">
       {children}

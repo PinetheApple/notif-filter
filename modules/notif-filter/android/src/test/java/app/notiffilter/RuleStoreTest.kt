@@ -165,6 +165,40 @@ class RuleStoreTest {
         assertEquals(500, s.logSize)
     }
 
+    @Test
+    fun `parseSettings reads onboardingDone`() {
+        val json = """{"defaultPolicy":"allow","onboardingDone":true}"""
+        val s = RuleStore.parseSettings(json)
+        assertTrue(s.onboardingDone)
+    }
+
+    @Test
+    fun `parseSettings defaults onboardingDone to false`() {
+        val s = RuleStore.parseSettings("""{}""")
+        assertFalse(s.onboardingDone)
+    }
+
+    @Test
+    fun `settingsToJson round-trip preserves onboardingDone`() {
+        // Regression guard: JS writes settings keys the service never reads;
+        // getSettings() must hand them back intact.
+        val s = RuleStore.parseSettings("""{"defaultPolicy":"block","onboardingDone":true}""")
+        val out = RuleStore.parseSettings(RuleStore.settingsToJson(s))
+        assertTrue(out.onboardingDone)
+        assertEquals("block", out.defaultPolicy)
+    }
+
+    @Test
+    fun `settingsToJson writes all known keys`() {
+        val s = Settings("allow", false, 500, "system", true)
+        val obj = JSONObject(RuleStore.settingsToJson(s))
+        assertEquals("allow", obj.getString("defaultPolicy"))
+        assertFalse(obj.getBoolean("filterOngoing"))
+        assertEquals(500, obj.getInt("logSize"))
+        assertEquals("system", obj.getString("theme"))
+        assertTrue(obj.getBoolean("onboardingDone"))
+    }
+
     // ── RuleEngine.compile ────────────────────────────────────────────────────
 
     @Test
