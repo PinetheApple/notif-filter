@@ -45,7 +45,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 .fab svg{width:24px;height:24px}
 :root{--bg:#ffffff;--bg2:#f4f4f5;--bg3:#e4e4e7;--border:#e4e4e7;--text:#18181b;--muted:#71717a;--accent:#d97706;--accent-text:#ffffff;--allow-bg:#e4f5e4;--allow-text:#166534;--deny-bg:#fce8d5;--deny-text:#92400e;--surface:#ffffff;--toggle-bg:#f4f4f5}
 .dark{--bg:#09090b;--bg2:#18181b;--bg3:#27272a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--accent:#f59e0b;--accent-text:#09090b;--allow-bg:#052e16;--allow-text:#86efac;--deny-bg:#451a03;--deny-text:#fbbf24;--surface:#18181b;--toggle-bg:#27272a}
-@media(prefers-color-scheme:dark){body:not(.light){--bg:#09090b;--bg2:#18181b;--bg3:#27272a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--accent:#f59e0b;--accent-text:#09090b;--allow-bg:#052e16;--allow-text:#86efac;--deny-bg:#451a03;--deny-text:#fbbf24;--surface:#18181b;--toggle-bg:#27272a}}
 </style>
 </head>
 <body>
@@ -271,7 +270,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
 <script>
 document.addEventListener('keydown',e=>{
   if(e.key==='d') document.documentElement.classList.toggle('dark')
-  if(e.key==='l') document.documentElement.classList.toggle('light')
 })
 </script>
 </body>
