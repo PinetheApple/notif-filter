@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 
 import '@/global.css';
+import { usePermissionStore } from '@/stores/permissions';
 
 const NAV_LIGHT = {
   dark: false,
@@ -44,6 +47,17 @@ const NAV_DARK = {
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const scheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const checkPermission = usePermissionStore((s) => s.checkPermission);
+
+  useEffect(() => {
+    checkPermission();
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
+        checkPermission();
+      }
+    });
+    return () => sub.remove();
+  }, [checkPermission]);
 
   return (
     <NavThemeProvider value={scheme === 'dark' ? NAV_DARK : NAV_LIGHT}>
