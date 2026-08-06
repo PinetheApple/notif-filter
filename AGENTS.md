@@ -15,6 +15,10 @@ reach the user. All matching is native (Java regex in Kotlin), not JS.
 
 ## Code style
 
+- DRY: extract repeated markup into a named component in `src/components/`. Do not copy-paste
+  identical JSX structures across screens
+- YAGNI: extract only when duplication exists in the codebase. Do not build "reusable"
+  components for hypothetical future use — let them emerge from real repetition
 - No magic values — extract constants
 - Files <= 400-500 lines; split when you hit the threshold
 - Comments: only "why" comments, max 2 lines each. Docstrings exempt
