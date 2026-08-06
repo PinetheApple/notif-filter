@@ -36,8 +36,6 @@ class NotifFilterModule : Module() {
 
         Events("onListenerConnectionChanged")
 
-        // ── Permission gate ─────────────────────────────────────────────
-
         Function("isListenerEnabled") {
             NotificationManagerCompat.getEnabledListenerPackages(context)
                 .contains(context.packageName)
@@ -49,8 +47,6 @@ class NotifFilterModule : Module() {
             context.startActivity(intent)
         }
 
-        // ── Rules ───────────────────────────────────────────────────────
-
         Function("getRules") {
             ruleStore.rulesToJson()
         }
@@ -59,8 +55,6 @@ class NotifFilterModule : Module() {
             ruleStore.saveRules(json)
         }
 
-        // ── Settings ────────────────────────────────────────────────────
-
         Function("getSettings") {
             ruleStore.settingsToJson()
         }
@@ -68,8 +62,6 @@ class NotifFilterModule : Module() {
         Function("saveSettings") { json: String ->
             ruleStore.saveSettings(json)
         }
-
-        // ── App inventory ───────────────────────────────────────────────
 
         Function("listInstalledApps") {
             val pm = context.packageManager
@@ -106,8 +98,6 @@ class NotifFilterModule : Module() {
             NotifFilterService.seenPackages.toList()
         }
 
-        // ── Pattern tester ──────────────────────────────────────────────
-
         Function("testPattern") { pattern: String, caseInsensitive: Boolean, title: String, text: String ->
             val matched = RuleEngine.testSinglePattern(pattern, caseInsensitive, "any", title, text)
             mapOf(
@@ -115,8 +105,6 @@ class NotifFilterModule : Module() {
                 "matchedSegment" to (matched ?: "")
             )
         }
-
-        // ── Test harness ────────────────────────────────────────────────
 
         AsyncFunction("postTestNotification") { title: String, text: String ->
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
@@ -152,8 +140,6 @@ class NotifFilterModule : Module() {
             manager.notify(9999, notification)
         }
 
-        // ── Event observers ─────────────────────────────────────────────
-
         OnStartObserving("onListenerConnectionChanged") {
             NotifFilterService.moduleRef = this@NotifFilterModule
         }
@@ -162,8 +148,6 @@ class NotifFilterModule : Module() {
             NotifFilterService.moduleRef = null
         }
     }
-
-    // ── Icon helpers ────────────────────────────────────────────────────────
 
     private fun drawableToBase64(drawable: Drawable): String {
         val bitmap = if (drawable is BitmapDrawable) {

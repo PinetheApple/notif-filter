@@ -39,8 +39,6 @@ class RuleStore(context: Context) {
         reload()
     }
 
-    // ── Rules ────────────────────────────────────────────────────────────────
-
     /** Parse + compile + persist + notify. */
     fun saveRules(json: String) {
         prefs.edit().putString(KEY_RULES, json).apply()
@@ -63,8 +61,6 @@ class RuleStore(context: Context) {
         settings = loadSettings()
         compiledRules = RuleEngine.compile(parseRules(raw))
     }
-
-    // ── Settings ─────────────────────────────────────────────────────────────
 
     fun saveSettings(json: String) {
         prefs.edit().putString(KEY_SETTINGS, json).apply()
@@ -90,8 +86,6 @@ class RuleStore(context: Context) {
         )
         return parseSettings(raw)
     }
-
-    // ── JSON helpers ─────────────────────────────────────────────────────────
 
     companion object {
         private const val PREFS_NAME = "notif_filter_rules"

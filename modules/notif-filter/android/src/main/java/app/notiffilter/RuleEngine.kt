@@ -3,18 +3,16 @@ package app.notiffilter
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
-// ── Data classes ──────────────────────────────────────────────────────────────
-
 data class Rule(
     val id: String,
     val label: String?,
     val enabled: Boolean,
-    val scopeKind: String,        // "all" | "packages"
+    val scopeKind: String,
     val scopePackages: List<String>,
-    val field: String,            // "title" | "text" | "any"
+    val field: String,
     val pattern: String,
     val caseInsensitive: Boolean,
-    val action: String,           // "allow" | "deny"
+    val action: String,
     val updatedAt: Long
 )
 
@@ -73,13 +71,11 @@ data class CompiledRule(
 )
 
 data class Settings(
-    val defaultPolicy: String,  // "allow" | "block"
+    val defaultPolicy: String,
     val filterOngoing: Boolean,
     val logSize: Int,
-    val theme: String           // "system" | "light" | "dark"
+    val theme: String
 )
-
-// ── Engine ────────────────────────────────────────────────────────────────────
 
 /**
  * Stateless rule evaluator.
@@ -125,7 +121,6 @@ object RuleEngine {
             }
         }
 
-        // Allow rules
         for (compiled in candidates) {
             if (compiled.rule.action != "allow") continue
             val matched = tryMatch(compiled, notification)
@@ -134,7 +129,6 @@ object RuleEngine {
             }
         }
 
-        // Default policy
         return if (defaultPolicy == "block") {
             EvaluationResult(Decision.BLOCK, null, null)
         } else {
@@ -189,8 +183,6 @@ object RuleEngine {
             }
         }
     }
-
-    // ── internal ────────────────────────────────────────────────────────────
 
     private fun tryMatch(
         compiled: CompiledRule,

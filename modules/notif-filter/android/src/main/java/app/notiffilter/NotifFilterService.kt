@@ -81,6 +81,5 @@ class NotifFilterService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        // No action needed in v1
     }
 }
