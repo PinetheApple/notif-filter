@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotifFilter — design preview</title>
+<style>
+*,::before,::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#1a1a1e;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.phone{width:390px;height:844px;border-radius:44px;overflow:hidden;box-shadow:0 0 0 3px #3a3a3e,0 20px 60px rgba(0,0,0,.5);position:relative}
+.header{height:54px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-size:15px;font-weight:600}
+.tabs{display:flex;border-top:1px solid var(--border)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;height:78px;gap:4px;font-size:10px;font-weight:500;transition:color .15s}
+.tab.active{color:var(--text)}
+.tab.inactive{color:var(--muted)}
+.tab svg{width:24px;height:24px}
+.content{flex:1;overflow-y:auto;padding-bottom:20px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:10px;padding:0 32px;text-align:center}
+.empty-title{font-size:17px;font-weight:500}
+.empty-desc{font-size:15px;line-height:1.4}
+.section{margin:24px 16px 0}
+.section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
+.group{border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:12px}
+.row-label{font-size:16px;flex:1}
+.row-desc{font-size:13px;line-height:1.3}
+.row-action{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
+.badge{padding:2px 8px;border-radius:6px;font-size:12px;font-weight:500}
+.badge-allow{background:var(--allow-bg);color:var(--allow-text)}
+.badge-deny{background:var(--deny-bg);color:var(--deny-text)}
+.history-item{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.history-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px}
+.history-body{flex:1;min-width:0}
+.history-title{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-meta{font-size:13px;margin-top:2px}
+.history-time{font-size:12px}
+.sep{height:1px;margin-left:16px}
+.toggle-btn{background:var(--toggle-bg);border:none;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:6px}
+.theme-row{display:flex;gap:4px;padding:2px;border-radius:10px;background:var(--toggle-bg)}
+.theme-btn{border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--muted)}
+.theme-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.banner{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;font-weight:500}
+.fab{position:absolute;bottom:100px;right:20px;width:52px;height:52px;border-radius:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:transform .15s}
+.fab:hover{transform:scale(1.05)}
+.fab svg{width:24px;height:24px}
+:root{--bg:#ffffff;--bg2:#f4f4f5;--bg3:#e4e4e7;--border:#e4e4e7;--text:#18181b;--muted:#71717a;--accent:#d97706;--accent-text:#ffffff;--allow-bg:#e4f5e4;--allow-text:#166534;--deny-bg:#fce8d5;--deny-text:#92400e;--surface:#ffffff;--toggle-bg:#f4f4f5}
+.dark{--bg:#09090b;--bg2:#18181b;--bg3:#27272a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--accent:#f59e0b;--accent-text:#09090b;--allow-bg:#052e16;--allow-text:#86efac;--deny-bg:#451a03;--deny-text:#fbbf24;--surface:#18181b;--toggle-bg:#27272a}
+@media(prefers-color-scheme:dark){body:not(.light){--bg:#09090b;--bg2:#18181b;--bg3:#27272a;--border:#27272a;--text:#fafafa;--muted:#a1a1aa;--accent:#f59e0b;--accent-text:#09090b;--allow-bg:#052e16;--allow-text:#86efac;--deny-bg:#451a03;--deny-text:#fbbf24;--surface:#18181b;--toggle-bg:#27272a}}
+</style>
+</head>
+<body>
+<div class="phone" style="background:var(--bg);display:flex;flex-direction:column">
+  <!-- status bar -->
+  <div style="height:12px;background:var(--bg)"></div>
+  <!-- permission banner (shown) -->
+  <div class="banner" style="background:var(--accent);color:var(--accent-text);margin:0 12px;border-radius:10px;margin-top:4px">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Notification access needed. Tap to open Settings.
+  </div>
+  <!-- header -->
+  <div class="header" style="background:var(--bg);color:var(--text)">Rules</div>
+
+  <!-- SCREEN 1: Rules tab -->
+  <div class="content" style="background:var(--bg)">
+    <div class="section">
+      <div class="section-title" style="color:var(--muted)">Active rules</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <div style="flex:1;min-width:0">
+            <div class="row-label" style="color:var(--text)">promo spam</div>
+            <div class="row-desc" style="color:var(--muted);margin-top:2px">All apps · <code style="font-size:13px;background:var(--bg3);padding:1px 5px;border-radius:4px">sale|offer|deal</code></div>
+          </div>
+          <span class="badge badge-deny">Deny</span>
+        </div>
+        <div class="sep" style="background:var(--bg3)"></div>
+        <div class="row">
+          <div style="flex:1;min-width:0">
+            <div class="row-label" style="color:var(--text)">allow contacts</div>
+            <div class="row-desc" style="color:var(--muted);margin-top:2px">WhatsApp, Messenger, Telegram · <code style="font-size:13px;background:var(--bg3);padding:1px 5px;border-radius:4px">.*</code></div>
+          </div>
+          <span class="badge badge-allow">Allow</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:16px">
+      <div class="section-title" style="color:var(--muted)">Default</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">Default policy</span>
+          <span style="color:var(--muted);font-size:14px">Allow all</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tabs -->
+  <div class="tabs" style="background:var(--bg)">
+    <div class="tab active">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="2"/><circle cx="13" cy="9" r="2"/><circle cx="19" cy="13" r="2"/><line x1="9" y1="13.6" x2="12" y2="10.4"/><line x1="15" y1="10.4" x2="18" y2="12.6"/></svg>
+      Rules
+    </div>
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </div>
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+  </div>
+</div>
+
+<div style="width:40px"></div>
+
+<!-- SCREEN 2: History tab -->
+<div class="phone" style="background:var(--bg);display:flex;flex-direction:column">
+  <div style="height:12px;background:var(--bg)"></div>
+  <div class="header" style="background:var(--bg);color:var(--text);display:flex;justify-content:space-between;padding:0 20px 8px">
+    <span>History</span>
+    <span style="font-weight:400;font-size:13px;color:var(--accent);cursor:pointer">Clear all</span>
+  </div>
+  <div class="content" style="background:var(--bg)">
+    <div class="history-item">
+      <div class="history-icon" style="background:#dbeafe;color:#1e40af;font-size:13px">WA</div>
+      <div class="history-body">
+        <div class="history-title" style="color:var(--text)">Alice: Are you free tonight?</div>
+        <div class="history-meta" style="color:var(--muted)"><span class="badge badge-allow" style="font-size:11px">Shown</span> allowed — no rules matched</div>
+      </div>
+      <div class="history-time" style="color:var(--muted)">2m</div>
+    </div>
+    <div class="sep" style="background:var(--bg3)"></div>
+    <div class="history-item">
+      <div class="history-icon" style="background:#e4e4e7;color:#52525b;font-size:13px">GM</div>
+      <div class="history-body">
+        <div class="history-title" style="color:var(--text)">New deals this weekend!</div>
+        <div class="history-meta" style="color:var(--muted)"><span class="badge badge-deny" style="font-size:11px">Blocked</span> blocked by <code style="font-size:12px;background:var(--bg3);padding:1px 4px;border-radius:3px">sale|offer|deal</code></div>
+      </div>
+      <div class="history-time" style="color:var(--muted)">4m</div>
+    </div>
+    <div class="sep" style="background:var(--bg3)"></div>
+    <div class="history-item">
+      <div class="history-icon" style="background:#fce7f3;color:#9d174d;font-size:13px">IG</div>
+      <div class="history-body">
+        <div class="history-title" style="color:var(--text)">@friend liked your post</div>
+        <div class="history-meta" style="color:var(--muted)"><span class="badge badge-deny" style="font-size:11px">Blocked</span> blocked by <code style="font-size:12px;background:var(--bg3);padding:1px 4px;border-radius:3px">(?i)like|comment</code></div>
+      </div>
+      <div class="history-time" style="color:var(--muted)">12m</div>
+    </div>
+    <div class="sep" style="background:var(--bg3)"></div>
+    <div class="history-item">
+      <div class="history-icon" style="background:#dcfce7;color:#166534;font-size:13px">TG</div>
+      <div class="history-body">
+        <div class="history-title" style="color:var(--text)">Reminder: meeting at 3pm</div>
+        <div class="history-meta" style="color:var(--muted)"><span class="badge badge-allow" style="font-size:11px">Shown</span> allowed by <code style="font-size:12px;background:var(--bg3);padding:1px 4px;border-radius:3px">allow contacts</code></div>
+      </div>
+      <div class="history-time" style="color:var(--muted)">31m</div>
+    </div>
+  </div>
+  <div class="tabs" style="background:var(--bg)">
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="2"/><circle cx="13" cy="9" r="2"/><circle cx="19" cy="13" r="2"/><line x1="9" y1="13.6" x2="12" y2="10.4"/><line x1="15" y1="10.4" x2="18" y2="12.6"/></svg>
+      Rules
+    </div>
+    <div class="tab active">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </div>
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+  </div>
+</div>
+
+<div style="width:40px"></div>
+
+<!-- SCREEN 3: Settings tab -->
+<div class="phone" style="background:var(--bg);display:flex;flex-direction:column">
+  <div style="height:12px;background:var(--bg)"></div>
+  <div class="header" style="background:var(--bg);color:var(--text)">Settings</div>
+  <div class="content" style="background:var(--bg)">
+    <div class="section">
+      <div class="section-title" style="color:var(--muted)">Filtering</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <div style="flex:1">
+            <div class="row-label" style="color:var(--text)">Default policy</div>
+            <div class="row-desc" style="color:var(--muted);margin-top:2px">Show everything unless a rule blocks it</div>
+          </div>
+          <div class="row-action" style="color:var(--muted)">Allow &#9654;</div>
+        </div>
+        <div class="sep" style="background:var(--bg3)"></div>
+        <div class="row">
+          <div style="flex:1">
+            <div class="row-label" style="color:var(--text)">Filter ongoing notifications</div>
+            <div class="row-desc" style="color:var(--muted);margin-top:2px">Media, navigation, or call notifications. Blocking may stop playback.</div>
+          </div>
+          <div style="width:46px;height:28px;border-radius:14px;display:flex;align-items:center;padding:2px;background:var(--bg3)">
+            <div style="width:24px;height:24px;border-radius:12px;background:white;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+          </div>
+        </div>
+        <div class="sep" style="background:var(--bg3)"></div>
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">History retention</span>
+          <span style="color:var(--muted);font-size:14px">500 entries</span>
+        </div>
+      </div>
+    </div>
+    <div class="section" style="margin-top:16px">
+      <div class="section-title" style="color:var(--muted)">Appearance</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">Theme</span>
+          <div class="theme-row">
+            <button class="theme-btn active">System</button>
+            <button class="theme-btn">Light</button>
+            <button class="theme-btn">Dark</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section" style="margin-top:16px">
+      <div class="section-title" style="color:var(--muted)">Data</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">Export rules</span>
+          <span style="color:var(--muted);font-size:20px;line-height:1">&#8599;</span>
+        </div>
+        <div class="sep" style="background:var(--bg3)"></div>
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">Import rules</span>
+          <span style="color:var(--muted);font-size:20px;line-height:1">&#8601;</span>
+        </div>
+      </div>
+    </div>
+    <div class="section" style="margin-top:16px">
+      <div class="section-title" style="color:var(--muted)">Debug</div>
+      <div class="group" style="background:var(--bg2)">
+        <div class="row">
+          <span class="row-label" style="color:var(--text)">Send test notification</span>
+          <span style="color:var(--muted);font-size:14px">&#9654;</span>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:24px;line-height:1.5;padding:0 40px">
+      All processing happens on this device.<br>Notification content never leaves it.
+    </p>
+  </div>
+  <div class="tabs" style="background:var(--bg)">
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="15" r="2"/><circle cx="13" cy="9" r="2"/><circle cx="19" cy="13" r="2"/><line x1="9" y1="13.6" x2="12" y2="10.4"/><line x1="15" y1="10.4" x2="18" y2="12.6"/></svg>
+      Rules
+    </div>
+    <div class="tab inactive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </div>
+    <div class="tab active">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('keydown',e=>{
+  if(e.key==='d') document.documentElement.classList.toggle('dark')
+  if(e.key==='l') document.documentElement.classList.toggle('light')
+})
+</script>
+</body>
+</html>
