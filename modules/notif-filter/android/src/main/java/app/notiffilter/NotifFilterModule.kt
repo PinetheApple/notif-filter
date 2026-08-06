@@ -27,6 +27,7 @@ class NotifFilterModule : Module() {
         get() = NotifFilterService.isConnected
 
     private val ruleStore by lazy { RuleStore(context) }
+    private val historyStore by lazy { HistoryStore(context) }
 
     /** Simple in-memory cache for app icons (max ~50 entries). */
     private val iconCache = LruCache<String, String>(50)
@@ -138,6 +139,47 @@ class NotifFilterModule : Module() {
             }
 
             manager.notify(9999, notification)
+        }
+
+        Function("getHistoryEntries") { limit: Int, beforeTs: Double? ->
+            val before = if (beforeTs != null) beforeTs.toLong() else null
+            val entries = historyStore.query(limit, before)
+            historyStore.entriesToJson(entries)
+        }
+
+        Function("clearHistory") {
+            historyStore.deleteAll()
+        }
+
+        AsyncFunction("restoreEntry") { id: String ->
+            val entry = historyStore.getById(id)
+                ?: throw IllegalStateException("Entry not found: $id")
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE)
+                as NotificationManager
+
+            val channelId = "restored"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    channelId,
+                    "Restored",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Restored notifications"
+                }
+                manager.createNotificationChannel(channel)
+            }
+
+            val nb = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder(context, channelId)
+            } else {
+                @Suppress("DEPRECATION")
+                Notification.Builder(context)
+            }
+            nb.setContentTitle(entry.title)
+            nb.setContentText(entry.text)
+            nb.setSmallIcon(android.R.drawable.ic_dialog_info)
+
+            manager.notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), nb.build())
         }
 
         OnStartObserving("onListenerConnectionChanged") {

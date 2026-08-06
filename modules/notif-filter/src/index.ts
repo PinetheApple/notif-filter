@@ -5,26 +5,22 @@ const NativeModule = requireNativeModule<{
   isListenerEnabled(): boolean;
   openNotificationAccessSettings(): void;
   postTestNotification(title: string, text: string): void;
-
-  // M2: rules & settings
   getRules(): string;
   saveRules(json: string): void;
   getSettings(): string;
   saveSettings(json: string): void;
-
-  // M2: app inventory
   listInstalledApps(): { package: string; label: string; hasPosted: boolean }[];
   getAppIcon(packageName: string): string;
   getSeenPackages(): string[];
-
-  // M2: pattern tester
   testPattern(
     pattern: string,
     caseInsensitive: boolean,
     title: string,
     text: string,
   ): { matches: boolean; matchedSegment: string };
-
+  getHistoryEntries(limit: number, beforeTs?: number): string;
+  clearHistory(): void;
+  restoreEntry(id: string): void;
   addListener(
     eventName: string,
     listener: (event: { connected: boolean }) => void,
@@ -59,8 +55,6 @@ export function removeListenerConnectionListener(
   NativeModule.removeListener('onListenerConnectionChanged', listener);
 }
 
-// ── M2: Rules & settings ──────────────────────────────────────────────────────
-
 export function getRules(): string {
   return NativeModule.getRules();
 }
@@ -76,8 +70,6 @@ export function getSettings(): string {
 export function saveSettings(json: string): void {
   NativeModule.saveSettings(json);
 }
-
-// ── M2: App inventory ─────────────────────────────────────────────────────────
 
 export type InstalledApp = {
   package: string;
@@ -97,8 +89,6 @@ export function getSeenPackages(): string[] {
   return NativeModule.getSeenPackages();
 }
 
-// ── M2: Pattern tester ────────────────────────────────────────────────────────
-
 export type TestPatternResult = {
   matches: boolean;
   matchedSegment: string;
@@ -111,4 +101,34 @@ export function testPattern(
   text: string,
 ): TestPatternResult {
   return NativeModule.testPattern(pattern, caseInsensitive, title, text);
+}
+
+export type HistoryEntry = {
+  id: string;
+  package: string;
+  appLabel: string;
+  title: string;
+  text: string;
+  disposition: 'shown' | 'blocked';
+  ruleId: string | null;
+  ruleLabel: string | null;
+  matchedSegment: string | null;
+  timestamp: number;
+  postTime: number;
+};
+
+export function getHistoryEntries(
+  limit: number,
+  beforeTs?: number,
+): HistoryEntry[] {
+  const json = NativeModule.getHistoryEntries(limit, beforeTs);
+  return JSON.parse(json);
+}
+
+export function clearHistory(): void {
+  NativeModule.clearHistory();
+}
+
+export function restoreEntry(id: string): void {
+  NativeModule.restoreEntry(id);
 }

@@ -6,7 +6,7 @@ import { palette, COLORS } from "@/constants/colors";
 import type { Rule } from "@/stores/rules";
 
 function ScopeLabel({ rule }: { rule: Rule }) {
-  if (rule.scopeType === "all") {
+  if (rule.scopeKind === "all") {
     return (
       <View className="rounded bg-surface-secondary px-1.5 py-0.5 dark:bg-surface-dark-secondary">
         <Text className="text-[11px] text-muted dark:text-muted-dark">
