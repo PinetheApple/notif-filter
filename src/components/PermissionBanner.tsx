@@ -1,15 +1,17 @@
-import { View, Text, Pressable } from 'react-native';
-import { Warning } from 'phosphor-react-native';
-import { useColorScheme } from 'nativewind';
+import { View, Text, Pressable } from "react-native";
+import { Warning } from "phosphor-react-native";
 
-import { usePermissionStore } from '@/stores/permissions';
-import * as NotifFilter from '../../modules/notif-filter/src/index';
+import { usePermissionStore } from "@/stores/permissions";
+import { palette } from "@/constants/colors";
+import * as NotifFilter from "../../modules/notif-filter/src/index";
 
-export function PermissionBanner() {
-  const { colorScheme } = useColorScheme();
+type Props = {
+  scheme: "light" | "dark";
+};
+
+export function PermissionBanner({ scheme }: Props) {
   const listenerEnabled = usePermissionStore((s) => s.listenerEnabled);
-  const setListenerEnabled = usePermissionStore((s) => s.setListenerEnabled);
-  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const p = palette(scheme);
 
   if (listenerEnabled !== false) return null;
 
@@ -25,7 +27,7 @@ export function PermissionBanner() {
       <Warning
         size={20}
         weight="regular"
-        color={scheme === 'dark' ? '#fde68a' : '#92400e'}
+        color={scheme === "dark" ? "#fde68a" : "#92400e"}
       />
       <View className="flex-1">
         <Text className="text-sm font-medium text-amber-900 dark:text-amber-100">

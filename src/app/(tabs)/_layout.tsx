@@ -1,56 +1,68 @@
-import { View } from 'react-native';
-import { Tabs } from 'expo-router';
-import { ClockCounterClockwise, FadersHorizontal, Gear } from 'phosphor-react-native';
-import { useColorScheme } from 'nativewind';
+import { View } from "react-native";
+import { Tabs } from "expo-router";
+import {
+  ClockCounterClockwise,
+  FadersHorizontal,
+  Gear,
+} from "phosphor-react-native";
+import { useColorScheme } from "nativewind";
 
-import { PermissionBanner } from '@/components/PermissionBanner';
-
-const COLORS = {
-  light: { active: '#18181b', inactive: '#a1a1aa' },
-  dark: { active: '#fafafa', inactive: '#71717a' },
-};
+import { PermissionBanner } from "@/components/PermissionBanner";
+import { palette, COLORS } from "@/constants/colors";
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
-  const palette = COLORS[scheme];
+  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const p = palette(scheme);
 
   return (
     <View className="flex-1">
-      <PermissionBanner />
+      <PermissionBanner scheme={scheme} />
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: palette.active,
-          tabBarInactiveTintColor: palette.inactive,
+          tabBarActiveTintColor: p.text,
+          tabBarInactiveTintColor: p.muted,
           tabBarStyle: {
-            borderTopColor: scheme === 'dark' ? '#27272a' : '#e4e4e7',
-            backgroundColor: scheme === 'dark' ? '#09090b' : '#ffffff',
+            borderTopColor:
+              scheme === "dark"
+                ? COLORS.surface.darkTertiary
+                : COLORS.surface.tertiary,
+            backgroundColor:
+              scheme === "dark" ? COLORS.surface.dark : COLORS.surface.DEFAULT,
           },
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Rules',
+            title: "Rules",
             tabBarIcon: ({ color, size }) => (
-              <FadersHorizontal color={String(color)} size={size} weight="regular" />
+              <FadersHorizontal
+                color={String(color)}
+                size={size}
+                weight="regular"
+              />
             ),
           }}
         />
         <Tabs.Screen
           name="history"
           options={{
-            title: 'History',
+            title: "History",
             tabBarIcon: ({ color, size }) => (
-              <ClockCounterClockwise color={String(color)} size={size} weight="regular" />
+              <ClockCounterClockwise
+                color={String(color)}
+                size={size}
+                weight="regular"
+              />
             ),
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Settings',
+            title: "Settings",
             tabBarIcon: ({ color, size }) => (
               <Gear color={String(color)} size={size} weight="regular" />
             ),
