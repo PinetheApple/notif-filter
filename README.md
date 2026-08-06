@@ -1,56 +1,110 @@
-# Welcome to your Expo app 👋
+# NotifFilter
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Android notification filter. Intercepts notifications before they're shown, matches them against user-defined regex rules, and cancels the ones that shouldn't get through. All on-device, no network.
 
-## Get started
+## How it works
 
-1. Install dependencies
+A `NotificationListenerService` (system-bound, always running once enabled) captures every incoming notification. A Kotlin rule engine evaluates each one against user rules stored in SharedPreferences. Matched notifications are cancelled via `cancelNotification(key)`. Both shown and blocked notifications are logged to a unified History feed.
 
-   ```bash
-   npm install
-   ```
+The UI is React Native (Expo SDK 57) — rule management only. The heavy lifting is native.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Quick start
 
 ```bash
-npm run reset-project
+npm install
+npx expo run:android          # dev build (required — custom native code)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Expo Go won't work. This app requires a development build because it ships a custom Kotlin service.
 
-### Other setup steps
+## Architecture
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+┌──────────────────────────┐
+│  React Native (Expo 57)  │  ← rule UI, history, settings
+├──────────────────────────┤
+│  Expo Module (Kotlin)    │  ← bridge: JS ↔ native
+├──────────────────────────┤
+│  NotificationListenerSvc │  ← system-bound, always running
+│  ├─ RuleEngine            │  ← evaluate regex + scope
+│  ├─ RuleStore             │  ← SharedPreferences (rules)
+│  └─ HistoryStore          │  ← SQLite (notification log)
+└──────────────────────────┘
+```
 
-## Learn more
+Key decisions:
+- Filtering is native (Kotlin), not JS — must work when the app process is killed
+- Rules live in `SharedPreferences` (single source of truth, read by both JS and the service)
+- History in SQLite (written by service, read by JS via Expo Module)
+- No MMKV, no AsyncStorage drift — the native store is authoritative
 
-To learn more about developing your project with Expo, look at the following resources:
+## Stack
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Concern | Choice | Version |
+|---|---|---|
+| Runtime | Expo SDK 57 | 57.0.x |
+| React Native | 0.86.x (New Arch only) | 0.86.x |
+| Navigation | expo-router (tabs) | 57.x |
+| Styling | NativeWind 4 + Tailwind 3.4 | 4.2.x |
+| State | zustand | 5.x |
+| Icons | Phosphor (phosphor-react-native) | 3.x |
+| Android | targetSdk 36, minSdk 26 | |
 
-## Join the community
+## Project structure
 
-Join our community of developers creating universal apps.
+```
+src/
+  app/
+    _layout.tsx          root layout (theme, nav provider)
+    (tabs)/
+      _layout.tsx        tab bar (Rules · History · Settings)
+      index.tsx          Rules screen
+      history.tsx        History screen
+      settings.tsx       Settings screen
+    rule/
+      new.tsx            Rule editor (placeholder)
+      [id].tsx           Edit rule (placeholder — to be created in M3)
+  stores/
+    rules.ts             zustand rules store
+    settings.ts          zustand settings store
+  global.css             Tailwind entry point
+modules/
+  notif-filter/          Expo Module (Kotlin) — M1
+    android/src/main/java/.../
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Milestones
+
+| # | Phase | Status | GitHub |
+|---|---|---|---|
+| M0 | Scaffold | ✅ Done | — |
+| M1 | Native core + permission flow | 🔲 | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
+| M2 | Rule engine + RuleStore + app inventory | 🔲 | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
+| M3 | Rules UI: editor, picker, regex test | 🔲 | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
+| M4 | History: SQLite log, restore | 🔲 | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
+| M5 | Polish: onboarding, anti-slop, e2e, APK | 🔲 | [#6](https://github.com/PinetheApple/notif-filter/issues/6) |
+
+Work through them in order. Each milestone has full acceptance criteria in the issue body.
+
+Full plan: [PLAN.md](PLAN.md)
+
+## Design decisions
+
+- Zinc+amber palette, no purple/indigo, no gradients, no glassmorphism
+- Phosphor icons, regular weight only
+- System font, 4/8 spacing scale, one radius scale
+- dark: variant on every surface, body text >= 4.5:1
+- No hype copy, no emoji, no exclamation marks in UI strings
+
+## Design preview
+
+Open `design-preview.html` in a browser. Press `d` to toggle dark mode.
+
+## Notes for the next agent
+
+1. Read AGENTS.md for working instructions
+2. Check the current milestone's GitHub issue for full context
+3. Run `npx tsc --noEmit` after changes — clean build enforced
+4. Read PLAN.md sections relevant to the milestone before starting
+5. The app does not use Expo Go — always `npx expo run:android`
+6. All native code goes under `modules/notif-filter/`
