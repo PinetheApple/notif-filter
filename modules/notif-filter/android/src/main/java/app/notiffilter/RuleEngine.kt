@@ -74,7 +74,8 @@ data class Settings(
     val defaultPolicy: String,
     val filterOngoing: Boolean,
     val logSize: Int,
-    val theme: String
+    val theme: String,
+    val onboardingDone: Boolean = false
 )
 
 /**

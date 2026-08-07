@@ -7,7 +7,9 @@ group = 'app.notiffilter'
 version = '1.0.0'
 
 android {
-  namespace "app.notiffilter"
+  // Distinct from the app's namespace: expo-module-gradle-plugin forces BuildConfig
+  // generation on, and sharing app.notiffilter collides with the app's at dex merge.
+  namespace "app.notiffilter.module"
   defaultConfig {
     versionCode 1
     versionName '1.0.0'

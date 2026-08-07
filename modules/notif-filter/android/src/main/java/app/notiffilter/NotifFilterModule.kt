@@ -14,7 +14,6 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Base64
 import android.util.LruCache
-import androidx.core.app.NotificationManagerCompat
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.ByteArrayOutputStream
@@ -38,8 +37,7 @@ class NotifFilterModule : Module() {
         Events("onListenerConnectionChanged")
 
         Function("isListenerEnabled") {
-            NotificationManagerCompat.getEnabledListenerPackages(context)
-                .contains(context.packageName)
+            NotifFilterService.isEnabled(context)
         }
 
         AsyncFunction("openNotificationAccessSettings") {

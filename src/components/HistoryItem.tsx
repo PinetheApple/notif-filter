@@ -85,7 +85,7 @@ export function HistoryItem({
           {/* Matched segment */}
           {entry.matchedSegment ? (
             <Text
-              className="font-mono text-xs text-accent"
+              className="font-mono text-xs text-accent dark:text-accent-dark"
               numberOfLines={1}
             >
               matched: {entry.matchedSegment}

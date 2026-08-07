@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { AppState, AppStateStatus } from "react-native";
-import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, ThemeProvider as NavThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 
 import "@/global.css";
+import { Onboarding } from "@/components/Onboarding";
 import { usePermissionStore } from "@/stores/permissions";
 import { useRulesStore } from "@/stores/rules";
 import { useSettingsStore } from "@/stores/settings";
@@ -53,6 +53,8 @@ export default function RootLayout() {
   const checkPermission = usePermissionStore((s) => s.checkPermission);
   const loadRules = useRulesStore((s) => s.loadFromNative);
   const loadSettings = useSettingsStore((s) => s.loadFromNative);
+  const settingsLoaded = useSettingsStore((s) => s.loaded);
+  const onboardingDone = useSettingsStore((s) => s.onboardingDone);
   const { setColorScheme } = useColorScheme();
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function RootLayout() {
     loadSettings();
     // Apply persisted theme on boot (NativeWind defaults to system otherwise)
     const tp = useSettingsStore.getState().themePreference;
-    if (tp !== 'system') {
+    if (tp !== "system") {
       setColorScheme(tp);
     }
     checkPermission();
@@ -72,11 +74,20 @@ export default function RootLayout() {
     return () => sub.remove();
   }, [checkPermission, loadRules, loadSettings]);
 
+  if (!settingsLoaded) {
+    // Settings read is a sync native call; this blank frame sits behind the splash.
+    return null;
+  }
+
   return (
     <NavThemeProvider value={scheme === "dark" ? NAV_DARK : NAV_LIGHT}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      {onboardingDone ? (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      ) : (
+        <Onboarding scheme={scheme} />
+      )}
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
     </NavThemeProvider>
   );

@@ -16,20 +16,20 @@ export const COLORS = {
     dark: "#fafafa",
   },
   muted: {
-    light: "#71717a",
+    light: "#52525b",
     dark: "#a1a1aa",
   },
   accent: {
-    DEFAULT: "#d97706",
+    DEFAULT: "#b45309",
     dark: "#f59e0b",
   },
   destructive: {
-    light: "#ef4444",
+    light: "#dc2626",
     dark: "#f87171",
   },
   switch: {
     trackOff: "#d4d4d8",
-    trackOn: "#d97706",
+    trackOn: "#b45309",
     thumb: "#ffffff",
   },
 } as const;

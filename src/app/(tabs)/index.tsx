@@ -1,12 +1,13 @@
 import { View, Pressable, FlatList, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Plus, Trash, CaretUp, CaretDown } from "phosphor-react-native";
+import { Trash, CaretUp, CaretDown } from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
 
 import { EmptyState } from "@/components/ui";
+import { AddRuleFab } from "@/components/AddRuleFab";
 import { RuleCard } from "@/components/RuleCard";
 import { useRulesStore } from "@/stores/rules";
+import { useSettingsStore } from "@/stores/settings";
 import { usePickerStore } from "@/stores/picker";
 import { palette } from "@/constants/colors";
 
@@ -17,6 +18,7 @@ export default function RulesScreen() {
   const p = palette(scheme);
 
   const rules = useRulesStore((s) => s.rules);
+  const defaultPolicy = useSettingsStore((s) => s.defaultPolicy);
   const toggleRule = useRulesStore((s) => s.toggleRule);
   const removeRule = useRulesStore((s) => s.removeRule);
   const reorderRules = useRulesStore((s) => s.reorderRules);
@@ -59,24 +61,23 @@ export default function RulesScreen() {
 
   if (rules.length === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
+      <View className="flex-1 bg-white dark:bg-surface-dark">
         <EmptyState
           title="No rules yet"
-          description="Add a rule to start filtering notifications."
+          description={
+            defaultPolicy === "allow"
+              ? "Everything shows until a rule blocks it. Tap the + button to add a rule."
+              : "Everything is blocked until a rule allows it. Tap the + button to add a rule."
+          }
         />
 
-        <Pressable
-          onPress={handleAdd}
-          className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-xl bg-accent shadow-lg active:scale-95"
-        >
-          <Plus size={26} weight="regular" color={p.accentText} />
-        </Pressable>
-      </SafeAreaView>
+        <AddRuleFab onPress={handleAdd} scheme={scheme} />
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
+    <View className="flex-1 bg-white dark:bg-surface-dark">
       <FlatList
         data={rules}
         keyExtractor={(item) => item.id}
@@ -126,12 +127,7 @@ export default function RulesScreen() {
         )}
       />
 
-      <Pressable
-        onPress={handleAdd}
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-xl bg-accent shadow-lg active:scale-95"
-      >
-        <Plus size={26} weight="regular" color={p.accentText} />
-      </Pressable>
-    </SafeAreaView>
+      <AddRuleFab onPress={handleAdd} scheme={scheme} />
+    </View>
   );
 }

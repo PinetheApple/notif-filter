@@ -13,6 +13,8 @@ type SettingsState = {
   setLogSize: (n: number) => void;
   themePreference: ThemePreference;
   setThemePreference: (t: ThemePreference) => void;
+  onboardingDone: boolean;
+  setOnboardingDone: (v: boolean) => void;
   loaded: boolean;
   loadFromNative: () => void;
 };
@@ -20,7 +22,11 @@ type SettingsState = {
 function persist(
   s: Pick<
     SettingsState,
-    "defaultPolicy" | "filterOngoing" | "logSize" | "themePreference"
+    | "defaultPolicy"
+    | "filterOngoing"
+    | "logSize"
+    | "themePreference"
+    | "onboardingDone"
   >,
 ): void {
   NotifFilter.saveSettings(
@@ -29,6 +35,7 @@ function persist(
       filterOngoing: s.filterOngoing,
       logSize: s.logSize,
       theme: s.themePreference,
+      onboardingDone: s.onboardingDone,
     }),
   );
 }
@@ -62,6 +69,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       return { themePreference };
     });
   },
+  onboardingDone: false,
+  setOnboardingDone: (onboardingDone) => {
+    set((s) => {
+      persist({ ...s, onboardingDone });
+      return { onboardingDone };
+    });
+  },
   loaded: false,
   loadFromNative: () => {
     try {
@@ -72,10 +86,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         filterOngoing: data.filterOngoing ?? false,
         logSize: data.logSize ?? 500,
         themePreference: data.theme ?? "system",
+        onboardingDone: data.onboardingDone ?? false,
         loaded: true,
       });
     } catch {
-      set({ loaded: true });
+      // Fresh installs get default JSON from native, not an error — never
+      // re-show onboarding after completion because a read failed.
+      set({ loaded: true, onboardingDone: true });
     }
   },
 }));
