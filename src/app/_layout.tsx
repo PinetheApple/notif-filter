@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { AppState, AppStateStatus } from "react-native";
-import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, ThemeProvider as NavThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 
