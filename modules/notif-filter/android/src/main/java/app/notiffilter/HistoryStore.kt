@@ -162,8 +162,13 @@ class HistoryStore(context: Context) {
 private class HistoryDbHelper(context: Context) :
     SQLiteOpenHelper(context, "notif_filter_history.db", null, 1) {
 
+    // WAL must be set here, not as a PRAGMA in onCreate: SQLiteOpenHelper runs
+    // onCreate inside a transaction, and SQLite refuses the mode change there.
+    init {
+        setWriteAheadLoggingEnabled(true)
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("PRAGMA journal_mode=WAL")
         db.execSQL("""
             CREATE TABLE history (
                 id TEXT PRIMARY KEY,

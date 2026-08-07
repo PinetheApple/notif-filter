@@ -14,10 +14,13 @@ android {
   }
   testOptions {
     unitTests.returnDefaultValues = true
+    unitTests.includeAndroidResources = true
   }
 }
 
 dependencies {
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.json:json:20231013'
+  // Real SQLite on the JVM, so HistoryStore can be tested without a device.
+  testImplementation 'org.robolectric:robolectric:4.14.1'
 }
