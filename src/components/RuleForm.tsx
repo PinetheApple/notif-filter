@@ -37,14 +37,14 @@ function Segment<T extends string>({
           onPress={() => onChange(opt)}
           className={`flex-1 px-3 py-2 ${
             opt === value
-              ? "bg-accent"
+              ? "bg-accent dark:bg-accent-dark"
               : "bg-surface-secondary dark:bg-surface-dark-secondary"
           }`}
         >
           <Text
             className={`text-center text-sm font-medium ${
               opt === value
-                ? "text-accent-text"
+                ? "text-accent-text dark:text-accent-text-dark"
                 : "text-surface-dark dark:text-white"
             }`}
           >
@@ -187,13 +187,15 @@ export function RuleForm({ initialRule, scheme }: Props) {
           disabled={!canSave}
           className={`rounded-lg px-4 py-2 ${
             canSave
-              ? "bg-accent active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
+              ? "bg-accent dark:bg-accent-dark active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
               : "bg-surface-secondary dark:bg-surface-dark-secondary"
           }`}
         >
           <Text
             className={`text-sm font-medium ${
-              canSave ? "text-accent-text" : "text-muted dark:text-muted-dark"
+              canSave
+                ? "text-accent-text dark:text-accent-text-dark"
+                : "text-muted dark:text-muted-dark"
             }`}
           >
             Save

@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { View, Text, Pressable, FlatList, Alert, Platform } from "react-native";
+import { View, Text, Pressable, FlatList, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Trash } from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui";
 import { HistoryItem } from "@/components/HistoryItem";
 import { useHistoryStore } from "@/stores/history";
 import { useRulesStore } from "@/stores/rules";
+import { usePermissionStore } from "@/stores/permissions";
 import { palette } from "@/constants/colors";
 
 export default function HistoryScreen() {
@@ -25,6 +26,9 @@ export default function HistoryScreen() {
   const restoreEntry = useHistoryStore((s) => s.restoreEntry);
 
   const addRule = useRulesStore((s) => s.addRule);
+  const requestPostNotifications = usePermissionStore(
+    (s) => s.requestPostNotifications,
+  );
 
   useEffect(() => {
     loadPage();
@@ -43,17 +47,8 @@ export default function HistoryScreen() {
     ]);
   };
 
-  function handleRestore(id: string) {
-    if (Platform.OS === "android" && Platform.Version >= 33) {
-      const { PermissionsAndroid } = require("react-native");
-      PermissionsAndroid.request("android.permission.POST_NOTIFICATIONS").then(
-        (granted: string) => {
-          if (granted === "granted") {
-            restoreEntry(id);
-          }
-        },
-      );
-    } else {
+  async function handleRestore(id: string) {
+    if (await requestPostNotifications()) {
       restoreEntry(id);
     }
   }

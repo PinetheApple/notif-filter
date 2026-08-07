@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -39,10 +39,21 @@ export function Onboarding({ scheme }: { scheme: ColorScheme }) {
   const [step, setStep] = useState(0);
 
   const listenerEnabled = usePermissionStore((s) => s.listenerEnabled);
+  const requestPostNotifications = usePermissionStore(
+    (s) => s.requestPostNotifications,
+  );
   const setOnboardingDone = useSettingsStore((s) => s.setOnboardingDone);
 
   const isLastStep = step === STEPS.length - 1;
   const StepIcon = STEPS[step].icon;
+
+  // Asked here rather than on first send, so a fresh install never hits the
+  // silent no-op NotificationManager returns without this permission.
+  useEffect(() => {
+    if (isLastStep) {
+      requestPostNotifications();
+    }
+  }, [isLastStep, requestPostNotifications]);
 
   function handleBack() {
     setStep((s) => s - 1);

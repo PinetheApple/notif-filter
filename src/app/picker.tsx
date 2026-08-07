@@ -91,9 +91,9 @@ export default function AppPickerScreen() {
         </Text>
         <Pressable
           onPress={handleConfirm}
-          className="rounded-lg bg-accent px-4 py-2 active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
+          className="rounded-lg bg-accent px-4 py-2 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
         >
-          <Text className="text-sm font-medium text-accent-text">
+          <Text className="text-sm font-medium text-accent-text dark:text-accent-text-dark">
             Done ({selected.length})
           </Text>
         </Pressable>
@@ -118,7 +118,9 @@ export default function AppPickerScreen() {
           onPress={selectAll}
           className="rounded bg-surface-secondary px-3 py-1 active:bg-surface-dark-secondary dark:bg-surface-dark-secondary dark:active:bg-surface-secondary"
         >
-          <Text className="text-xs text-accent">All apps</Text>
+          <Text className="text-xs text-accent dark:text-accent-dark">
+            All apps
+          </Text>
         </Pressable>
 
         <View className="flex-row items-center gap-2">

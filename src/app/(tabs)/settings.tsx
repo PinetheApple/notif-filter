@@ -16,6 +16,7 @@ import { useColorScheme } from "nativewind";
 import { ListRow, ListSection, Separator } from "@/components/ui";
 import { useSettingsStore } from "@/stores/settings";
 import { useRulesStore, type Rule } from "@/stores/rules";
+import { usePermissionStore } from "@/stores/permissions";
 import { palette, COLORS } from "@/constants/colors";
 import * as NotifFilter from "../../../modules/notif-filter/src/index";
 
@@ -74,6 +75,9 @@ export default function SettingsScreen() {
 
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const rules = useRulesStore((s) => s.rules);
+  const requestPostNotifications = usePermissionStore(
+    (s) => s.requestPostNotifications,
+  );
   const importRules = useRulesStore((s) => s.importRules);
 
   const [logSizeText, setLogSizeText] = useState(String(logSize));
@@ -97,7 +101,16 @@ export default function SettingsScreen() {
     setThemePreference(v as "system" | "light" | "dark");
   }
 
-  function handleSendTest() {
+  async function handleSendTest() {
+    const granted = await requestPostNotifications();
+    if (!granted) {
+      Alert.alert(
+        "Notification permission needed",
+        "Android will not show notifications from NotifFilter until you allow them in system settings.",
+      );
+      return;
+    }
+
     NotifFilter.postTestNotification(
       "Test notification",
       "This is a test from NotifFilter",
