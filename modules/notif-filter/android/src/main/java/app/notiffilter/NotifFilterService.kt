@@ -1,9 +1,12 @@
 package app.notiffilter
 
 import android.app.Notification
+import android.content.ComponentName
+import android.content.Context
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import java.util.UUID
 
 class NotifFilterService : NotificationListenerService() {
@@ -16,6 +19,10 @@ class NotifFilterService : NotificationListenerService() {
 
         /** Packages that have posted at least one notification since service start. */
         val seenPackages: MutableSet<String> = mutableSetOf()
+
+        fun isEnabled(context: Context): Boolean =
+            NotificationManagerCompat.getEnabledListenerPackages(context)
+                .contains(context.packageName)
     }
 
     private lateinit var ruleStore: RuleStore
@@ -43,12 +50,29 @@ class NotifFilterService : NotificationListenerService() {
         isConnected = false
         Log.i(TAG, "Listener disconnected")
         moduleRef?.sendEvent("onListenerConnectionChanged", mapOf("connected" to false))
+
+        // Android drops the binding after a force-stop or app update. Ask for it back so
+        // filtering resumes without the user re-granting access, but only while access
+        // is still held — otherwise this loops against a revoked permission.
+        if (isEnabled(this)) {
+            requestRebind(ComponentName(this, NotifFilterService::class.java))
+        }
     }
 
+    // A throw out of this callback kills the service and with it all filtering, so it is
+    // a hard error boundary: log and drop the one notification rather than dying.
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
 
+        try {
+            handleNotificationPosted(sbn)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to handle notification from ${sbn.packageName}", e)
+        }
+    }
+
+    private fun handleNotificationPosted(sbn: StatusBarNotification) {
         val notification = sbn.notification
         val extras = notification.extras
         val isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0
