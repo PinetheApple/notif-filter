@@ -5,6 +5,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Wait for a release to prove itself elsewhere before proposing it. Majors get
+    # longest; security updates ignore cooldown entirely.
+    cooldown:
+      semver-major-days: 30
+      semver-minor-days: 14
+      semver-patch-days: 7
     commit-message:
       prefix: 'chore'
       include: scope
@@ -25,6 +31,16 @@ updates:
       - dependency-name: 'react-native'
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
+
+      # Also SDK-pinned, and enforced by `expo install --check` in CI, so an individual
+      # bump is always wrong rather than merely early. Named rather than react-native-*
+      # so independent packages like react-native-css-interop still update.
+      - dependency-name: 'react-native-gesture-handler'
+      - dependency-name: 'react-native-reanimated'
+      - dependency-name: 'react-native-safe-area-context'
+      - dependency-name: 'react-native-screens'
+      - dependency-name: 'react-native-web'
+      - dependency-name: 'react-native-worklets'
 
       # eslint 10 is blocked by eslint-config-expo, whose eslint-plugin-import and
       # eslint-plugin-react peer ranges cap at ^9. Drop once both accept ^10.
@@ -51,5 +67,9 @@ updates:
     directory: /modules/notif-filter/android
     schedule:
       interval: weekly
+    cooldown:
+      semver-major-days: 30
+      semver-minor-days: 14
+      semver-patch-days: 7
     commit-message:
       prefix: 'build'
