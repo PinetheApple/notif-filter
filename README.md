@@ -101,6 +101,10 @@ Full plan: [PLAN.md](PLAN.md)
 
 Open `design-preview.html` in a browser. Press `d` to toggle dark mode.
 
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).
+
 ## Notes for the next agent
 
 1. Read AGENTS.md for working instructions
