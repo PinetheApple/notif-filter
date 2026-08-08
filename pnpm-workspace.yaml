@@ -1,0 +1,8 @@
+# Expo/RN Gradle autolinking resolves packages with `node --print require.resolve(...)` from
+# the project root, which cannot see pnpm's default symlinked tree of transitive deps.
+nodeLinker: hoisted
+
+# eslint-import-resolver-typescript's native binary; pnpm blocks postinstall
+# scripts unless the package is approved here.
+allowBuilds:
+  unrs-resolver: true

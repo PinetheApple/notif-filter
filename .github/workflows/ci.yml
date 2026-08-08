@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  js:
+    name: JS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Must precede setup-node: `cache: pnpm` needs the pnpm binary to locate the store.
+      # Version comes from package.json `packageManager`, so no `version` input here.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run typecheck
+
+      - run: pnpm run format:check
+
+      - run: pnpm run lint
+
+  android:
+    name: Android unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          # v6 defaults to the proprietary gradle-actions-caching component; 'basic' keeps
+          # caching on the open-source GitHub Actions cache.
+          cache-provider: basic
+
+      # android/ is gitignored and regenerated, and settings.gradle autolinks through node,
+      # so dependencies must be installed before the project can be generated at all.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec expo prebuild --platform android --no-install
+
+      - run: ./gradlew :notif-filter:testDebugUnitTest
+        working-directory: android
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: notif-filter-test-report
+          path: modules/notif-filter/android/build/reports/tests/
+          retention-days: 7

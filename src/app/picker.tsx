@@ -1,41 +1,30 @@
-import { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  FlatList,
-  Image,
-  Switch,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { CaretLeft, Check, MagnifyingGlass } from "phosphor-react-native";
-import { useColorScheme } from "nativewind";
+import { useState, useMemo } from 'react';
+import { View, Text, TextInput, Pressable, FlatList, Image, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { CaretLeft, Check, MagnifyingGlass } from 'phosphor-react-native';
+import { useColorScheme } from 'nativewind';
 
-import { usePickerStore } from "@/stores/picker";
-import { EmptyState } from "@/components/ui";
-import { palette, COLORS } from "@/constants/colors";
-import * as NotifFilter from "../../modules/notif-filter/src/index";
+import { usePickerStore } from '@/stores/picker';
+import { EmptyState } from '@/components/ui';
+import { palette, COLORS } from '@/constants/colors';
+import * as NotifFilter from '../../modules/notif-filter/src/index';
 
 export default function AppPickerScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
   const p = palette(scheme);
 
   const selected = usePickerStore((s) => s.selected);
   const togglePackage = usePickerStore((s) => s.togglePackage);
   const setSelected = usePickerStore((s) => s.setSelected);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [onlyNotifying, setOnlyNotifying] = useState(false);
 
   const apps = useMemo(() => NotifFilter.listInstalledApps(), []);
-  const seenPackages = useMemo(
-    () => new Set(NotifFilter.getSeenPackages()),
-    [],
-  );
+  const seenPackages = useMemo(() => new Set(NotifFilter.getSeenPackages()), []);
 
   const filtered = useMemo(() => {
     let list = apps;
@@ -45,9 +34,7 @@ export default function AppPickerScreen() {
     if (query) {
       const q = query.toLowerCase();
       list = list.filter(
-        (a) =>
-          a.label.toLowerCase().includes(q) ||
-          a.package.toLowerCase().includes(q),
+        (a) => a.label.toLowerCase().includes(q) || a.package.toLowerCase().includes(q),
       );
     }
     return list;
@@ -118,15 +105,11 @@ export default function AppPickerScreen() {
           onPress={selectAll}
           className="rounded bg-surface-secondary px-3 py-1 active:bg-surface-dark-secondary dark:bg-surface-dark-secondary dark:active:bg-surface-secondary"
         >
-          <Text className="text-xs text-accent dark:text-accent-dark">
-            All apps
-          </Text>
+          <Text className="text-xs text-accent dark:text-accent-dark">All apps</Text>
         </Pressable>
 
         <View className="flex-row items-center gap-2">
-          <Text className="text-xs text-muted dark:text-muted-dark">
-            Notifying only
-          </Text>
+          <Text className="text-xs text-muted dark:text-muted-dark">Notifying only</Text>
           <Switch
             value={onlyNotifying}
             onValueChange={setOnlyNotifying}
@@ -144,10 +127,7 @@ export default function AppPickerScreen() {
         data={filtered}
         keyExtractor={(item) => item.package}
         ListEmptyComponent={
-          <EmptyState
-            title="No apps found"
-            description="Try a different search term or filter."
-          />
+          <EmptyState title="No apps found" description="Try a different search term or filter." />
         }
         renderItem={({ item }) => {
           const isSelected = selected.includes(item.package);
@@ -160,9 +140,7 @@ export default function AppPickerScreen() {
             >
               {renderAppIcon(item.package)}
               <View className="flex-1 gap-0.5">
-                <Text className="text-sm text-surface-dark dark:text-white">
-                  {item.label}
-                </Text>
+                <Text className="text-sm text-surface-dark dark:text-white">{item.label}</Text>
                 {hasPosted ? (
                   <Text className="text-[11px] text-muted dark:text-muted-dark">
                     Has sent notifications

@@ -1,17 +1,11 @@
-import { Pressable } from "react-native";
-import { Plus } from "phosphor-react-native";
+import { Pressable } from 'react-native';
+import { Plus } from 'phosphor-react-native';
 
-import { palette } from "@/constants/colors";
+import { palette } from '@/constants/colors';
 
 const FAB_ICON_SIZE = 26;
 
-export function AddRuleFab({
-  onPress,
-  scheme,
-}: {
-  onPress: () => void;
-  scheme: "light" | "dark";
-}) {
+export function AddRuleFab({ onPress, scheme }: { onPress: () => void; scheme: 'light' | 'dark' }) {
   const p = palette(scheme);
 
   return (

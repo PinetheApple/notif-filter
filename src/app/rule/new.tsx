@@ -1,16 +1,16 @@
-import { useMemo } from "react";
-import { useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useColorScheme } from "nativewind";
+import { useMemo } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from 'nativewind';
 
-import { RuleForm } from "@/components/RuleForm";
-import type { Rule, RuleAction } from "@/stores/rules";
+import { RuleForm } from '@/components/RuleForm';
+import type { Rule, RuleAction } from '@/stores/rules';
 
 /** A per-app rule from history starts wide open; the user narrows it before saving. */
-const MATCH_ALL_PATTERN = ".*";
+const MATCH_ALL_PATTERN = '.*';
 
-const DEFAULT_ACTION: RuleAction = "deny";
-const RULE_ACTIONS: RuleAction[] = ["deny", "allow"];
+const DEFAULT_ACTION: RuleAction = 'deny';
+const RULE_ACTIONS: RuleAction[] = ['deny', 'allow'];
 
 type PrefillParams = {
   package?: string;
@@ -29,19 +29,19 @@ function toRuleAction(value: string | undefined): RuleAction {
 
 export default function NewRuleScreen() {
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<PrefillParams>();
 
   const draft = useMemo<Partial<Rule> | undefined>(() => {
     if (!params.package) return undefined;
     return {
-      label: params.label ?? "",
+      label: params.label ?? '',
       action: toRuleAction(params.action),
-      scopeKind: "packages",
+      scopeKind: 'packages',
       scopePackages: [params.package],
       pattern: MATCH_ALL_PATTERN,
       caseInsensitive: true,
-      field: "any",
+      field: 'any',
     };
   }, [params.package, params.action, params.label]);
 

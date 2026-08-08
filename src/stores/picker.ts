@@ -1,13 +1,12 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 /** Which screen the current picker session belongs to. */
 export const PICKER_PURPOSE = {
-  ruleScope: "ruleScope",
-  ignoredApps: "ignoredApps",
+  ruleScope: 'ruleScope',
+  ignoredApps: 'ignoredApps',
 } as const;
 
-export type PickerPurpose =
-  (typeof PICKER_PURPOSE)[keyof typeof PICKER_PURPOSE];
+export type PickerPurpose = (typeof PICKER_PURPOSE)[keyof typeof PICKER_PURPOSE];
 
 type PickerState = {
   purpose: PickerPurpose;

@@ -10,8 +10,8 @@ reach the user. All matching is native (Java regex in Kotlin), not JS.
 
 - Read the current milestone's GitHub issue for the full spec + acceptance criteria
 - Read the relevant sections of PLAN.md
-- `npx tsc --noEmit` must pass before committing
-- This app requires a dev build (`npx expo run:android`), not Expo Go
+- `pnpm exec tsc --noEmit` must pass before committing
+- This app requires a dev build (`pnpm expo run:android`), not Expo Go
 
 ## Code style
 

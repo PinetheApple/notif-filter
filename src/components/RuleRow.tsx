@@ -1,9 +1,9 @@
-import { View, Pressable } from "react-native";
-import { Trash, CaretUp, CaretDown } from "phosphor-react-native";
+import { View, Pressable } from 'react-native';
+import { Trash, CaretUp, CaretDown } from 'phosphor-react-native';
 
-import { RuleCard } from "@/components/RuleCard";
-import { palette } from "@/constants/colors";
-import type { Rule } from "@/stores/rules";
+import { RuleCard } from '@/components/RuleCard';
+import { palette } from '@/constants/colors';
+import type { Rule } from '@/stores/rules';
 
 const REORDER_ICON_SIZE = 20;
 const DELETE_ICON_SIZE = 18;
@@ -12,7 +12,7 @@ type Props = {
   rule: Rule;
   index: number;
   count: number;
-  scheme: "light" | "dark";
+  scheme: 'light' | 'dark';
   onEdit: (id: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
@@ -66,8 +66,8 @@ export function RuleRow({
           accessibilityLabel="Move rule up"
           className={`h-12 w-12 items-center justify-center rounded ${
             isFirst
-              ? "opacity-30"
-              : "active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
+              ? 'opacity-30'
+              : 'active:bg-surface-secondary dark:active:bg-surface-dark-secondary'
           }`}
         >
           <CaretUp size={REORDER_ICON_SIZE} weight="regular" color={p.muted} />
@@ -78,25 +78,16 @@ export function RuleRow({
           accessibilityLabel="Move rule down"
           className={`h-12 w-12 items-center justify-center rounded ${
             isLast
-              ? "opacity-30"
-              : "active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
+              ? 'opacity-30'
+              : 'active:bg-surface-secondary dark:active:bg-surface-dark-secondary'
           }`}
         >
-          <CaretDown
-            size={REORDER_ICON_SIZE}
-            weight="regular"
-            color={p.muted}
-          />
+          <CaretDown size={REORDER_ICON_SIZE} weight="regular" color={p.muted} />
         </Pressable>
       </View>
 
       <View className="flex-1">
-        <RuleCard
-          rule={rule}
-          scheme={scheme}
-          onPress={handleEdit}
-          onToggle={handleToggle}
-        />
+        <RuleCard rule={rule} scheme={scheme} onPress={handleEdit} onToggle={handleToggle} />
       </View>
 
       <Pressable

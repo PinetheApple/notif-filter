@@ -1,0 +1,12 @@
+node_modules/
+android/
+ios/
+dist/
+web-build/
+.expo/
+.claude/
+pnpm-lock.yaml
+CHANGELOG.md
+expo-env.d.ts
+assets/
+design-preview.html

@@ -1,5 +1,5 @@
-import { requireNativeModule } from "expo-modules-core";
-import type { EventSubscription } from "expo-modules-core";
+import { requireNativeModule } from 'expo-modules-core';
+import type { EventSubscription } from 'expo-modules-core';
 
 const NativeModule = requireNativeModule<{
   isListenerEnabled(): boolean;
@@ -25,11 +25,8 @@ const NativeModule = requireNativeModule<{
     eventName: string,
     listener: (event: { connected: boolean }) => void,
   ): EventSubscription;
-  removeListener(
-    eventName: string,
-    listener: (event: { connected: boolean }) => void,
-  ): void;
-}>("NotifFilter");
+  removeListener(eventName: string, listener: (event: { connected: boolean }) => void): void;
+}>('NotifFilter');
 
 export function isListenerEnabled(): boolean {
   return NativeModule.isListenerEnabled();
@@ -46,13 +43,13 @@ export function postTestNotification(title: string, text: string): void {
 export function addListenerConnectionListener(
   listener: (event: { connected: boolean }) => void,
 ): EventSubscription {
-  return NativeModule.addListener("onListenerConnectionChanged", listener);
+  return NativeModule.addListener('onListenerConnectionChanged', listener);
 }
 
 export function removeListenerConnectionListener(
   listener: (event: { connected: boolean }) => void,
 ): void {
-  NativeModule.removeListener("onListenerConnectionChanged", listener);
+  NativeModule.removeListener('onListenerConnectionChanged', listener);
 }
 
 export function getRules(): string {
@@ -116,7 +113,7 @@ export type HistoryEntry = {
   summaryText?: string;
   infoText?: string;
   textLines?: string;
-  disposition: "shown" | "blocked";
+  disposition: 'shown' | 'blocked';
   ruleId: string | null;
   ruleLabel: string | null;
   matchedSegment: string | null;
@@ -128,10 +125,7 @@ export type HistoryEntry = {
   postTime: number;
 };
 
-export function getHistoryEntries(
-  limit: number,
-  beforeTs?: number,
-): HistoryEntry[] {
+export function getHistoryEntries(limit: number, beforeTs?: number): HistoryEntry[] {
   const json = NativeModule.getHistoryEntries(limit, beforeTs);
   return JSON.parse(json);
 }

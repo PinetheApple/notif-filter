@@ -1,18 +1,18 @@
-import { View, FlatList, Alert, type ListRenderItemInfo } from "react-native";
-import { useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
+import { View, FlatList, Alert, type ListRenderItemInfo } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 
-import { EmptyState } from "@/components/ui";
-import { AddRuleFab } from "@/components/AddRuleFab";
-import { RuleRow } from "@/components/RuleRow";
-import { useRulesStore, type Rule } from "@/stores/rules";
-import { useSettingsStore } from "@/stores/settings";
-import { usePickerStore, PICKER_PURPOSE } from "@/stores/picker";
+import { EmptyState } from '@/components/ui';
+import { AddRuleFab } from '@/components/AddRuleFab';
+import { RuleRow } from '@/components/RuleRow';
+import { useRulesStore, type Rule } from '@/stores/rules';
+import { useSettingsStore } from '@/stores/settings';
+import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
 
 export default function RulesScreen() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
 
   const rules = useRulesStore((s) => s.rules);
   const defaultPolicy = useSettingsStore((s) => s.defaultPolicy);
@@ -22,14 +22,12 @@ export default function RulesScreen() {
 
   function handleAdd() {
     usePickerStore.getState().open(PICKER_PURPOSE.ruleScope, []);
-    router.push("/rule/new");
+    router.push('/rule/new');
   }
 
   function handleEdit(id: string) {
     const rule = rules.find((r) => r.id === id);
-    usePickerStore
-      .getState()
-      .open(PICKER_PURPOSE.ruleScope, rule?.scopePackages ?? []);
+    usePickerStore.getState().open(PICKER_PURPOSE.ruleScope, rule?.scopePackages ?? []);
     router.push(`/rule/${id}`);
   }
 
@@ -38,9 +36,9 @@ export default function RulesScreen() {
   }
 
   function handleDelete(id: string) {
-    Alert.alert("Delete rule", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => removeRule(id) },
+    Alert.alert('Delete rule', 'This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => removeRule(id) },
     ]);
   }
 
@@ -80,9 +78,9 @@ export default function RulesScreen() {
         <EmptyState
           title="No rules yet"
           description={
-            defaultPolicy === "allow"
-              ? "Everything shows until a rule blocks it. Tap the + button to add a rule."
-              : "Everything is blocked until a rule allows it. Tap the + button to add a rule."
+            defaultPolicy === 'allow'
+              ? 'Everything shows until a rule blocks it. Tap the + button to add a rule.'
+              : 'Everything is blocked until a rule allows it. Tap the + button to add a rule.'
           }
         />
 

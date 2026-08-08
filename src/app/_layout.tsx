@@ -1,23 +1,23 @@
-import { useEffect } from "react";
-import { AppState, AppStateStatus } from "react-native";
-import { Stack, ThemeProvider as NavThemeProvider } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "nativewind";
+import { useEffect } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'nativewind';
 
-import "@/global.css";
-import { Onboarding } from "@/components/Onboarding";
-import { usePermissionStore } from "@/stores/permissions";
-import { useRulesStore } from "@/stores/rules";
-import { useSettingsStore } from "@/stores/settings";
-import { COLORS } from "@/constants/colors";
+import '@/global.css';
+import { Onboarding } from '@/components/Onboarding';
+import { usePermissionStore } from '@/stores/permissions';
+import { useRulesStore } from '@/stores/rules';
+import { useSettingsStore } from '@/stores/settings';
+import { COLORS } from '@/constants/colors';
 
 const NAV_LIGHT = {
   dark: false,
   fonts: {
-    regular: { fontFamily: "System", fontWeight: "400" as const },
-    medium: { fontFamily: "System", fontWeight: "500" as const },
-    bold: { fontFamily: "System", fontWeight: "700" as const },
-    heavy: { fontFamily: "System", fontWeight: "900" as const },
+    regular: { fontFamily: 'System', fontWeight: '400' as const },
+    medium: { fontFamily: 'System', fontWeight: '500' as const },
+    bold: { fontFamily: 'System', fontWeight: '700' as const },
+    heavy: { fontFamily: 'System', fontWeight: '900' as const },
   },
   colors: {
     primary: COLORS.text.light,
@@ -32,10 +32,10 @@ const NAV_LIGHT = {
 const NAV_DARK = {
   dark: true,
   fonts: {
-    regular: { fontFamily: "System", fontWeight: "400" as const },
-    medium: { fontFamily: "System", fontWeight: "500" as const },
-    bold: { fontFamily: "System", fontWeight: "700" as const },
-    heavy: { fontFamily: "System", fontWeight: "900" as const },
+    regular: { fontFamily: 'System', fontWeight: '400' as const },
+    medium: { fontFamily: 'System', fontWeight: '500' as const },
+    bold: { fontFamily: 'System', fontWeight: '700' as const },
+    heavy: { fontFamily: 'System', fontWeight: '900' as const },
   },
   colors: {
     primary: COLORS.text.dark,
@@ -49,7 +49,7 @@ const NAV_DARK = {
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
-  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
   const checkPermission = usePermissionStore((s) => s.checkPermission);
   const loadRules = useRulesStore((s) => s.loadFromNative);
   const loadSettings = useSettingsStore((s) => s.loadFromNative);
@@ -62,12 +62,12 @@ export default function RootLayout() {
     loadSettings();
     // Apply persisted theme on boot (NativeWind defaults to system otherwise)
     const tp = useSettingsStore.getState().themePreference;
-    if (tp !== "system") {
+    if (tp !== 'system') {
       setColorScheme(tp);
     }
     checkPermission();
-    const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
-      if (state === "active") {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active') {
         checkPermission();
       }
     });
@@ -80,7 +80,7 @@ export default function RootLayout() {
   }
 
   return (
-    <NavThemeProvider value={scheme === "dark" ? NAV_DARK : NAV_LIGHT}>
+    <NavThemeProvider value={scheme === 'dark' ? NAV_DARK : NAV_LIGHT}>
       {onboardingDone ? (
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
@@ -88,7 +88,7 @@ export default function RootLayout() {
       ) : (
         <Onboarding scheme={scheme} />
       )}
-      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
     </NavThemeProvider>
   );
 }

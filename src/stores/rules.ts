@@ -1,17 +1,17 @@
-import { create } from "zustand";
-import * as NotifFilter from "../../modules/notif-filter/src/index";
+import { create } from 'zustand';
+import * as NotifFilter from '../../modules/notif-filter/src/index';
 
-export type RuleAction = "allow" | "deny";
+export type RuleAction = 'allow' | 'deny';
 
 export type Rule = {
   id: string;
   label: string;
   enabled: boolean;
-  scopeKind: "all" | "packages";
+  scopeKind: 'all' | 'packages';
   scopePackages: string[];
   pattern: string;
   caseInsensitive: boolean;
-  field: "title" | "text" | "any";
+  field: 'title' | 'text' | 'any';
   action: RuleAction;
   updatedAt: number;
 };
@@ -25,7 +25,7 @@ type RulesState = {
   removeRule: (id: string) => void;
   reorderRules: (ids: string[]) => void;
   toggleRule: (id: string) => void;
-  importRules: (imported: Rule[], mode: "merge" | "replace") => void;
+  importRules: (imported: Rule[], mode: 'merge' | 'replace') => void;
 };
 
 function persist(rules: Rule[]): void {
@@ -71,9 +71,7 @@ export const useRulesStore = create<RulesState>((set) => ({
 
   reorderRules: (ids) =>
     set((s) => {
-      const rules = ids
-        .map((id) => s.rules.find((r) => r.id === id))
-        .filter((r): r is Rule => !!r);
+      const rules = ids.map((id) => s.rules.find((r) => r.id === id)).filter((r): r is Rule => !!r);
       persist(rules);
       return { rules };
     }),
@@ -89,16 +87,13 @@ export const useRulesStore = create<RulesState>((set) => ({
 
   importRules: (imported, mode) =>
     set((s) => {
-      if (mode === "replace") {
+      if (mode === 'replace') {
         persist(imported);
         return { rules: imported };
       }
       // Merge: skip duplicates by id, append new ones
       const existingIds = new Set(s.rules.map((r) => r.id));
-      const merged = [
-        ...s.rules,
-        ...imported.filter((r) => !existingIds.has(r.id)),
-      ];
+      const merged = [...s.rules, ...imported.filter((r) => !existingIds.has(r.id))];
       persist(merged);
       return { rules: merged };
     }),
