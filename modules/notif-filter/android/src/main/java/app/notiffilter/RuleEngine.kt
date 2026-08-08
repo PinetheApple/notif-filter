@@ -75,7 +75,8 @@ data class Settings(
     val filterOngoing: Boolean,
     val logSize: Int,
     val theme: String,
-    val onboardingDone: Boolean = false
+    val onboardingDone: Boolean = false,
+    val ignoredPackages: List<String> = emptyList()
 )
 
 /**
@@ -89,25 +90,35 @@ object RuleEngine {
     const val MAX_CONTENT_LENGTH = 4096
 
     /**
-     * Evaluate [notification] against [compiledRules] and [settings].
+     * True when [notification] must leave the pipeline untouched: no rule evaluation,
+     * no cancel, and no history entry.
+     *
+     * Covers two cases:
+     * 1. The posting package is on the user's ignored list.
+     * 2. The notification is ongoing while `filterOngoing` is off — it would always be
+     *    allowed, so logging it only floods history with media/charging/VPN noise.
+     */
+    fun isExempt(notification: NotificationContent, settings: Settings): Boolean {
+        if (settings.ignoredPackages.contains(notification.packageName)) return true
+        return notification.isOngoing && !settings.filterOngoing
+    }
+
+    /**
+     * Evaluate [notification] against [compiledRules].
+     *
+     * Callers must check [isExempt] first — exempted notifications never reach here.
      *
      * Order:
-     * 1. Skip ongoing notifications when [filterOngoing] is false.
-     * 2. Filter rules by [enabled] and scope match.
-     * 3. Check deny rules — first match wins (deny takes priority).
-     * 4. Check allow rules.
-     * 5. Apply [defaultPolicy]: in block mode, no allow match = BLOCK; otherwise ALLOW.
+     * 1. Filter rules by [Rule.enabled] and scope match.
+     * 2. Check deny rules — first match wins (deny takes priority).
+     * 3. Check allow rules.
+     * 4. Apply [defaultPolicy]: in block mode, no allow match = BLOCK; otherwise ALLOW.
      */
     fun evaluate(
         notification: NotificationContent,
         compiledRules: List<CompiledRule>,
-        defaultPolicy: String,
-        filterOngoing: Boolean
+        defaultPolicy: String
     ): EvaluationResult {
-        if (notification.isOngoing && !filterOngoing) {
-            return EvaluationResult(Decision.ALLOW, null, null)
-        }
-
         val candidates = compiledRules.filter { compiled ->
             val r = compiled.rule
             r.enabled && (r.scopeKind == "all" || r.scopePackages.contains(notification.packageName))

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,18 @@ import {
   Linking,
 } from "react-native";
 import Constants from "expo-constants";
-import { ArrowSquareOut, Export, FileArrowDown } from "phosphor-react-native";
+import { useRouter, useFocusEffect } from "expo-router";
+import {
+  ArrowSquareOut,
+  CaretRight,
+  Export,
+  FileArrowDown,
+} from "phosphor-react-native";
 import { useColorScheme } from "nativewind";
 
 import { ListRow, ListSection, Separator } from "@/components/ui";
 import { useSettingsStore } from "@/stores/settings";
+import { usePickerStore, PICKER_PURPOSE } from "@/stores/picker";
 import { useRulesStore, type Rule } from "@/stores/rules";
 import { usePermissionStore } from "@/stores/permissions";
 import { palette, COLORS } from "@/constants/colors";
@@ -22,6 +29,10 @@ import * as NotifFilter from "../../../modules/notif-filter/src/index";
 
 const REPO_URL = "https://github.com/PinetheApple/notif-filter";
 const APP_VERSION = Constants.expoConfig?.version ?? "unknown";
+
+function isSameSelection(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((pkg, i) => pkg === b[i]);
+}
 
 function SegmentedPicker<T extends string>({
   options,
@@ -62,6 +73,7 @@ function SegmentedPicker<T extends string>({
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { colorScheme, setColorScheme } = useColorScheme();
   const scheme = colorScheme === "dark" ? "dark" : "light";
   const p = palette(scheme);
@@ -72,6 +84,8 @@ export default function SettingsScreen() {
   const setFilterOngoing = useSettingsStore((s) => s.setFilterOngoing);
   const logSize = useSettingsStore((s) => s.logSize);
   const setLogSize = useSettingsStore((s) => s.setLogSize);
+  const ignoredPackages = useSettingsStore((s) => s.ignoredPackages);
+  const setIgnoredPackages = useSettingsStore((s) => s.setIgnoredPackages);
 
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const rules = useRulesStore((s) => s.rules);
@@ -83,6 +97,20 @@ export default function SettingsScreen() {
   const [logSizeText, setLogSizeText] = useState(String(logSize));
   const [importVisible, setImportVisible] = useState(false);
   const [importJson, setImportJson] = useState("");
+
+  useFocusEffect(
+    useCallback(() => {
+      const picker = usePickerStore.getState();
+      if (picker.purpose !== PICKER_PURPOSE.ignoredApps) return;
+      if (isSameSelection(picker.selected, ignoredPackages)) return;
+      setIgnoredPackages(picker.selected);
+    }, [ignoredPackages, setIgnoredPackages]),
+  );
+
+  function handleIgnoredAppsTap() {
+    usePickerStore.getState().open(PICKER_PURPOSE.ignoredApps, ignoredPackages);
+    router.push("/picker");
+  }
 
   function handleLogSizeChange(text: string) {
     setLogSizeText(text);
@@ -189,6 +217,24 @@ export default function SettingsScreen() {
                 />
               }
             />
+            <Separator />
+            <Pressable
+              onPress={handleIgnoredAppsTap}
+              className="active:bg-surface-tertiary dark:active:bg-surface-dark-tertiary"
+            >
+              <ListRow
+                label="Ignored apps"
+                description="Notifications from these apps are never filtered or logged"
+                action={
+                  <View className="flex-row items-center gap-1">
+                    <Text className="text-sm text-muted dark:text-muted-dark">
+                      {ignoredPackages.length}
+                    </Text>
+                    <CaretRight size={16} weight="regular" color={p.muted} />
+                  </View>
+                }
+              />
+            </Pressable>
             <Separator />
             <ListRow
               label="Log size"

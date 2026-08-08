@@ -15,6 +15,8 @@ type SettingsState = {
   setThemePreference: (t: ThemePreference) => void;
   onboardingDone: boolean;
   setOnboardingDone: (v: boolean) => void;
+  ignoredPackages: string[];
+  setIgnoredPackages: (packages: string[]) => void;
   loaded: boolean;
   loadFromNative: () => void;
 };
@@ -27,6 +29,7 @@ function persist(
     | "logSize"
     | "themePreference"
     | "onboardingDone"
+    | "ignoredPackages"
   >,
 ): void {
   NotifFilter.saveSettings(
@@ -36,6 +39,7 @@ function persist(
       logSize: s.logSize,
       theme: s.themePreference,
       onboardingDone: s.onboardingDone,
+      ignoredPackages: s.ignoredPackages,
     }),
   );
 }
@@ -76,6 +80,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       return { onboardingDone };
     });
   },
+  ignoredPackages: [],
+  setIgnoredPackages: (ignoredPackages) => {
+    set((s) => {
+      persist({ ...s, ignoredPackages });
+      return { ignoredPackages };
+    });
+  },
   loaded: false,
   loadFromNative: () => {
     try {
@@ -87,6 +98,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         logSize: data.logSize ?? 500,
         themePreference: data.theme ?? "system",
         onboardingDone: data.onboardingDone ?? false,
+        ignoredPackages: data.ignoredPackages ?? [],
         loaded: true,
       });
     } catch {

@@ -197,6 +197,30 @@ class RuleStoreTest {
         assertEquals(500, obj.getInt("logSize"))
         assertEquals("system", obj.getString("theme"))
         assertTrue(obj.getBoolean("onboardingDone"))
+        assertEquals(0, obj.getJSONArray("ignoredPackages").length())
+    }
+
+    @Test
+    fun `parseSettings reads ignoredPackages`() {
+        val json = """{"ignoredPackages":["com.spotify.music","com.android.systemui"]}"""
+        val s = RuleStore.parseSettings(json)
+        assertEquals(listOf("com.spotify.music", "com.android.systemui"), s.ignoredPackages)
+    }
+
+    @Test
+    fun `parseSettings defaults ignoredPackages to empty for existing installs`() {
+        // Settings JSON written before the ignored-apps feature must still parse.
+        val json = """{"defaultPolicy":"block","filterOngoing":true,"logSize":200,"theme":"dark"}"""
+        val s = RuleStore.parseSettings(json)
+        assertTrue(s.ignoredPackages.isEmpty())
+        assertEquals("block", s.defaultPolicy)
+    }
+
+    @Test
+    fun `settingsToJson round-trip preserves ignoredPackages`() {
+        val s = RuleStore.parseSettings("""{"ignoredPackages":["com.a","com.b"]}""")
+        val out = RuleStore.parseSettings(RuleStore.settingsToJson(s))
+        assertEquals(listOf("com.a", "com.b"), out.ignoredPackages)
     }
 
     // ── RuleEngine.compile ────────────────────────────────────────────────────

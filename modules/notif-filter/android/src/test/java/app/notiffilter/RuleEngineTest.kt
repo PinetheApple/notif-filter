@@ -33,11 +33,10 @@ class RuleEngineTest {
     private fun eval(
         notification: NotificationContent,
         rules: List<Rule>,
-        defaultPolicy: String = "allow",
-        filterOngoing: Boolean = false
+        defaultPolicy: String = "allow"
     ): EvaluationResult {
         val compiled = rules.mapNotNull { compiled(it) }
-        return RuleEngine.evaluate(notification, compiled, defaultPolicy, filterOngoing)
+        return RuleEngine.evaluate(notification, compiled, defaultPolicy)
     }
 
     // ── Deny priority ────────────────────────────────────────────────────────
@@ -215,27 +214,66 @@ class RuleEngineTest {
 
     // ── Ongoing notifications ────────────────────────────────────────────────
 
+    // Ongoing suppression lives solely in isExempt now; evaluate must not
+    // second-guess it, or an exempt-check caller would get different answers.
     @Test
-    fun `ongoing notification skipped when filterOngoing is false`() {
+    fun `evaluate ignores the ongoing flag`() {
         val rules = listOf(rule(id = "r1", pattern = "anything"))
-        val result = eval(notif(title = "anything", isOngoing = true), rules, filterOngoing = false)
-        assertEquals(Decision.ALLOW, result.decision)
-        assertNull(result.ruleId)
-    }
-
-    @Test
-    fun `ongoing notification filtered when filterOngoing is true`() {
-        val rules = listOf(rule(id = "r1", pattern = "anything"))
-        val result = eval(notif(title = "anything", isOngoing = true), rules, filterOngoing = true)
+        val result = eval(notif(title = "anything", isOngoing = true), rules)
         assertEquals(Decision.BLOCK, result.decision)
         assertEquals("r1", result.ruleId)
     }
 
     @Test
-    fun `non-ongoing notification always checked regardless of filterOngoing`() {
+    fun `non-ongoing notification is evaluated`() {
         val rules = listOf(rule(id = "r1", pattern = "test"))
-        val result = eval(notif(title = "test", isOngoing = false), rules, filterOngoing = false)
+        val result = eval(notif(title = "test", isOngoing = false), rules)
         assertEquals(Decision.BLOCK, result.decision)
+    }
+
+    // ── Exemption (no evaluation, no cancel, no history entry) ───────────────
+
+    private fun settings(
+        filterOngoing: Boolean = false,
+        ignoredPackages: List<String> = emptyList()
+    ) = Settings("allow", filterOngoing, 500, "system", false, ignoredPackages)
+
+    @Test
+    fun `ongoing notification is exempt when filterOngoing is false`() {
+        assertTrue(RuleEngine.isExempt(notif(isOngoing = true), settings(filterOngoing = false)))
+    }
+
+    @Test
+    fun `ongoing notification is not exempt when filterOngoing is true`() {
+        assertFalse(RuleEngine.isExempt(notif(isOngoing = true), settings(filterOngoing = true)))
+    }
+
+    @Test
+    fun `non-ongoing notification is not exempt`() {
+        assertFalse(RuleEngine.isExempt(notif(isOngoing = false), settings(filterOngoing = false)))
+    }
+
+    @Test
+    fun `ignored package is exempt`() {
+        val s = settings(ignoredPackages = listOf("com.example"))
+        assertTrue(RuleEngine.isExempt(notif(packageName = "com.example"), s))
+    }
+
+    @Test
+    fun `ignored package is exempt even when filterOngoing is true`() {
+        val s = settings(filterOngoing = true, ignoredPackages = listOf("com.example"))
+        assertTrue(RuleEngine.isExempt(notif(packageName = "com.example", isOngoing = true), s))
+    }
+
+    @Test
+    fun `package that is not ignored is not exempt`() {
+        val s = settings(ignoredPackages = listOf("com.other"))
+        assertFalse(RuleEngine.isExempt(notif(packageName = "com.example"), s))
+    }
+
+    @Test
+    fun `empty ignored list exempts nothing`() {
+        assertFalse(RuleEngine.isExempt(notif(packageName = "com.example"), settings()))
     }
 
     // ── Empty rules ──────────────────────────────────────────────────────────

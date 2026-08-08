@@ -1,5 +1,5 @@
-import { requireNativeModule } from 'expo-modules-core';
-import type { EventSubscription } from 'expo-modules-core';
+import { requireNativeModule } from "expo-modules-core";
+import type { EventSubscription } from "expo-modules-core";
 
 const NativeModule = requireNativeModule<{
   isListenerEnabled(): boolean;
@@ -29,7 +29,7 @@ const NativeModule = requireNativeModule<{
     eventName: string,
     listener: (event: { connected: boolean }) => void,
   ): void;
-}>('NotifFilter');
+}>("NotifFilter");
 
 export function isListenerEnabled(): boolean {
   return NativeModule.isListenerEnabled();
@@ -46,13 +46,13 @@ export function postTestNotification(title: string, text: string): void {
 export function addListenerConnectionListener(
   listener: (event: { connected: boolean }) => void,
 ): EventSubscription {
-  return NativeModule.addListener('onListenerConnectionChanged', listener);
+  return NativeModule.addListener("onListenerConnectionChanged", listener);
 }
 
 export function removeListenerConnectionListener(
   listener: (event: { connected: boolean }) => void,
 ): void {
-  NativeModule.removeListener('onListenerConnectionChanged', listener);
+  NativeModule.removeListener("onListenerConnectionChanged", listener);
 }
 
 export function getRules(): string {
@@ -103,16 +103,27 @@ export function testPattern(
   return NativeModule.testPattern(pattern, caseInsensitive, title, text);
 }
 
+// The expanded-view fields are optional: rows written before the schema bump carry
+// none of them, and the UI must still render those.
 export type HistoryEntry = {
   id: string;
   package: string;
   appLabel: string;
   title: string;
   text: string;
-  disposition: 'shown' | 'blocked';
+  subText?: string;
+  bigText?: string;
+  summaryText?: string;
+  infoText?: string;
+  textLines?: string;
+  disposition: "shown" | "blocked";
   ruleId: string | null;
   ruleLabel: string | null;
   matchedSegment: string | null;
+  /** StatusBarNotification.key the row's identity is derived from. */
+  notifKey?: string;
+  /** True when the row was backfilled on listener reconnect, not seen live. */
+  recovered?: boolean;
   timestamp: number;
   postTime: number;
 };

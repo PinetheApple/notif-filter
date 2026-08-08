@@ -11,12 +11,14 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { CaretLeft, CaretRight } from "phosphor-react-native";
 
 import { useRulesStore, type Rule, type RuleAction } from "@/stores/rules";
-import { usePickerStore } from "@/stores/picker";
+import { usePickerStore, PICKER_PURPOSE } from "@/stores/picker";
 import { palette, COLORS } from "@/constants/colors";
 import * as NotifFilter from "../../modules/notif-filter/src/index";
 
 type Props = {
   initialRule?: Rule;
+  /** Prefilled values for a rule that does not exist yet. Never persisted on its own. */
+  draft?: Partial<Rule>;
   scheme: "light" | "dark";
 };
 
@@ -56,31 +58,29 @@ function Segment<T extends string>({
   );
 }
 
-export function RuleForm({ initialRule, scheme }: Props) {
+export function RuleForm({ initialRule, draft, scheme }: Props) {
   const router = useRouter();
   const p = palette(scheme);
 
   const addRule = useRulesStore((s) => s.addRule);
   const updateRule = useRulesStore((s) => s.updateRule);
-  const selected = usePickerStore((s) => s.selected);
 
   const isEdit = !!initialRule;
-  const [label, setLabel] = useState(initialRule?.label ?? "");
-  const [pattern, setPattern] = useState(initialRule?.pattern ?? "");
+  const initial = initialRule ?? draft;
+  const [label, setLabel] = useState(initial?.label ?? "");
+  const [pattern, setPattern] = useState(initial?.pattern ?? "");
   const [caseInsensitive, setCaseInsensitive] = useState(
-    initialRule?.caseInsensitive ?? false,
+    initial?.caseInsensitive ?? false,
   );
   const [field, setField] = useState<"title" | "text" | "any">(
-    initialRule?.field ?? "any",
+    initial?.field ?? "any",
   );
-  const [action, setAction] = useState<RuleAction>(
-    initialRule?.action ?? "deny",
-  );
+  const [action, setAction] = useState<RuleAction>(initial?.action ?? "deny");
   const [scopeKind, setScopeKind] = useState<"all" | "packages">(
-    initialRule?.scopeKind ?? "all",
+    initial?.scopeKind ?? "all",
   );
   const [scopePackages, setScopePackages] = useState<string[]>(
-    initialRule?.scopePackages ?? [],
+    initial?.scopePackages ?? [],
   );
 
   const [sampleText, setSampleText] = useState("");
@@ -119,26 +119,32 @@ export function RuleForm({ initialRule, scheme }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      if (scopeKind === "packages") {
-        setScopePackages(usePickerStore.getState().selected);
+      const picker = usePickerStore.getState();
+      if (
+        scopeKind === "packages" &&
+        picker.purpose === PICKER_PURPOSE.ruleScope
+      ) {
+        setScopePackages(picker.selected);
       }
     }, [scopeKind]),
   );
 
+  function handleBack() {
+    router.back();
+  }
+
   function openAppPicker() {
     usePickerStore
       .getState()
-      .setSelected(scopeKind === "packages" ? scopePackages : []);
+      .open(
+        PICKER_PURPOSE.ruleScope,
+        scopeKind === "packages" ? scopePackages : [],
+      );
     router.push("/picker");
   }
 
   function handleSave() {
-    const packages =
-      scopeKind === "packages"
-        ? selected.length > 0
-          ? selected
-          : scopePackages
-        : [];
+    const packages = scopeKind === "packages" ? scopePackages : [];
 
     if (isEdit && initialRule) {
       updateRule(initialRule.id, {
@@ -174,7 +180,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
     <View className="flex-1 bg-white dark:bg-surface-dark">
       <View className="flex-row items-center gap-3 px-2 py-2">
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleBack}
           className="h-10 w-10 items-center justify-center rounded-full active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
         >
           <CaretLeft size={22} weight="regular" color={p.text} />
@@ -224,7 +230,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
           <Segment
             options={["all", "packages"] as const}
             value={scopeKind}
-            onChange={(v) => setScopeKind(v)}
+            onChange={setScopeKind}
           />
           {scopeKind === "packages" ? (
             <Pressable
@@ -248,7 +254,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
           <Segment
             options={["title", "text", "any"] as const}
             value={field}
-            onChange={(v) => setField(v)}
+            onChange={setField}
           />
         </View>
 
@@ -288,7 +294,7 @@ export function RuleForm({ initialRule, scheme }: Props) {
           <Segment
             options={["deny", "allow"] as const}
             value={action}
-            onChange={(v) => setAction(v)}
+            onChange={setAction}
           />
         </View>
 

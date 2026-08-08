@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import * as NotifFilter from '../../modules/notif-filter/src/index';
-import type { HistoryEntry } from '../../modules/notif-filter/src/index';
+import { create } from "zustand";
+import * as NotifFilter from "../../modules/notif-filter/src/index";
+import type { HistoryEntry } from "../../modules/notif-filter/src/index";
 
 const PAGE_SIZE = 30;
 
@@ -32,10 +32,13 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   },
 
   refresh: async () => {
-    const entries = NotifFilter.getHistoryEntries(PAGE_SIZE + 1);
-    const hasMore = entries.length > PAGE_SIZE;
+    // Re-query the depth already scrolled to, otherwise a refresh collapses a
+    // deep list back to one page and drops the user's scroll position.
+    const depth = Math.max(PAGE_SIZE, get().entries.length);
+    const entries = NotifFilter.getHistoryEntries(depth + 1);
+    const hasMore = entries.length > depth;
     set({
-      entries: hasMore ? entries.slice(0, PAGE_SIZE) : entries,
+      entries: hasMore ? entries.slice(0, depth) : entries,
       hasMore,
       loaded: true,
     });
