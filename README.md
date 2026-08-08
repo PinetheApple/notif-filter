@@ -89,6 +89,41 @@ Work through them in order. Each milestone has full acceptance criteria in the i
 
 Full plan: [PLAN.md](PLAN.md)
 
+## Releases
+
+Merging to `main` lets release-please open a release PR. Merging that PR tags the release
+and triggers the `Signed APK` job, which builds `assembleRelease`, checks the APK is not
+debug-signed, uploads it as a release asset and appends its SHA-256 to the release notes.
+
+Signing is driven by three environment variables, read in `modules/notif-filter/app.plugin.js`
+and written into `android/app/build.gradle` at prebuild time:
+
+| Variable                    | Repository secret                               |
+| --------------------------- | ----------------------------------------------- |
+| `ANDROID_KEYSTORE_PATH`     | decoded from `ANDROID_KEYSTORE_BASE64` at build |
+| `ANDROID_KEYSTORE_PASSWORD` | `ANDROID_KEYSTORE_PASSWORD`                     |
+| `ANDROID_KEY_ALIAS`         | `ANDROID_KEY_ALIAS`                             |
+
+When any of them is unset the release variant falls back to the template debug key, so
+`pnpm expo run:android` and local release builds work without secrets.
+
+The keystore is PKCS12, so the store and key passwords are the same value and there is no
+separate key-password secret. To create one and load it into the repository:
+
+```bash
+keytool -genkeypair -v -storetype pkcs12 -keystore release.p12 \
+  -alias <alias> -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 release.p12 > release.p12.base64
+```
+
+Then set `ANDROID_KEYSTORE_BASE64` (contents of the base64 file), `ANDROID_KEYSTORE_PASSWORD`
+and `ANDROID_KEY_ALIAS` as repository secrets, and keep an offline backup of `release.p12`.
+Never commit the keystore or the base64 file.
+
+Rotation is effectively one-way: Android refuses to install an update signed with a
+different key, so a new key forces every user to uninstall and lose their rules and history.
+Rotate only if the current key is lost or compromised, and say so in the release notes.
+
 ## Design decisions
 
 - Zinc+amber palette, no purple/indigo, no gradients, no glassmorphism

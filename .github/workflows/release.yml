@@ -8,21 +8,103 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   release-please:
     name: Release PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       # CHANGELOG.md, package.json and app.json (expo.version) are all machine-written
       # from conventional commits here; never hand-edit them.
       # A repo-scoped PAT, not GITHUB_TOKEN: Actions is not permitted to open pull
       # requests, and a PAT-opened PR also triggers CI, which GITHUB_TOKEN suppresses.
       - uses: googleapis/release-please-action@v5
+        id: release
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  apk:
+    name: Signed APK
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      APK_NAME: notif-filter-${{ needs.release-please.outputs.tag_name }}.apk
+      # RUNNER_TEMP is outside the workspace, so the keystore can never be committed
+      # or swept into an uploaded artifact.
+      KEYSTORE_NAME: release-keystore.p12
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      # android/ is gitignored and regenerated, and settings.gradle autolinks through node,
+      # so dependencies must be installed before the project can be generated at all.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec expo prebuild --platform android --no-install
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/$KEYSTORE_NAME"
+
+      - name: Build release APK
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/${{ env.KEYSTORE_NAME }}
+          # A PKCS12 keystore has one password; Gradle uses it as store and key password.
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: ./gradlew :app:assembleRelease
+
+      - name: Verify signature
+        run: >-
+          ./scripts/verify-apk-signature.sh
+          android/app/build/outputs/apk/release/app-release.apk
+          android/app/debug.keystore
+
+      - name: Delete keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/$KEYSTORE_NAME"
+
+      - name: Publish APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          CHECKSUM_HEADING: '### APK checksum'
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk "$APK_NAME"
+          checksum="$(sha256sum "$APK_NAME" | awk '{ print $1 }')"
+          gh release upload "$TAG" "$APK_NAME" --clobber
+          # Drop any checksum section from an earlier run of this job before appending.
+          gh release view "$TAG" --json body --jq .body |
+            sed "/^${CHECKSUM_HEADING}\$/,\$d" > release-notes.md
+          printf '\n%s\n\n```\n%s  %s\n```\n' \
+            "$CHECKSUM_HEADING" "$checksum" "$APK_NAME" >> release-notes.md
+          gh release edit "$TAG" --notes-file release-notes.md
