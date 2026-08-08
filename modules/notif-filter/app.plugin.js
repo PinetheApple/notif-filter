@@ -61,6 +61,57 @@ function withEnglishOnlyResources(config) {
   });
 }
 
+const SIGNING_MARKER = '// notif-filter: release signing';
+// PKCS12 keystores carry a single password, so store and key password are the same
+// secret. Absent env vars keep the template's debug signing so local builds work.
+const SIGNING_BLOCK = `
+${SIGNING_MARKER}
+def notifFilterKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+def notifFilterKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+def notifFilterKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+def notifFilterCanSignRelease =
+    notifFilterKeystorePath && notifFilterKeystorePassword && notifFilterKeyAlias
+
+android {
+    if (notifFilterCanSignRelease) {
+        signingConfigs {
+            release {
+                storeFile file(notifFilterKeystorePath)
+                storeType "pkcs12"
+                storePassword notifFilterKeystorePassword
+                keyAlias notifFilterKeyAlias
+                keyPassword notifFilterKeystorePassword
+            }
+        }
+        buildTypes {
+            release {
+                signingConfig signingConfigs.release
+            }
+        }
+    } else {
+        buildTypes {
+            release {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+}
+
+if (!notifFilterCanSignRelease) {
+    logger.lifecycle("notif-filter: ANDROID_KEYSTORE_* unset, release builds are debug-signed")
+}
+`;
+
+function withReleaseSigning(config) {
+  return withAppBuildGradle(config, (config) => {
+    if (!config.modResults.contents.includes(SIGNING_MARKER)) {
+      config.modResults.contents += SIGNING_BLOCK;
+    }
+
+    return config;
+  });
+}
+
 function withNotifFilterService(config) {
   return withAndroidManifest(config, async (config) => {
     const manifest = config.modResults;
@@ -134,6 +185,7 @@ function withNotifFilter(config) {
     withoutInternetInRelease,
     withShippedAbis,
     withEnglishOnlyResources,
+    withReleaseSigning,
   ]);
 }
 
