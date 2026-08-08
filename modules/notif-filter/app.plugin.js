@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const {
   withAndroidManifest,
+  withAppBuildGradle,
   withDangerousMod,
+  withGradleProperties,
   withPlugins,
   AndroidConfig,
 } = require('@expo/config-plugins');
@@ -16,6 +18,48 @@ const RELEASE_MANIFEST = `<manifest xmlns:android="http://schemas.android.com/ap
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
 </manifest>
 `;
+
+const ABI_PROPERTY = 'reactNativeArchitectures';
+// x86/x86_64 are emulator-only and cost ~46 MB of the APK; real hardware is ARM.
+const SHIPPED_ABIS = 'armeabi-v7a,arm64-v8a';
+
+function withShippedAbis(config) {
+  return withGradleProperties(config, (config) => {
+    const existing = config.modResults.find(
+      (item) => item.type === 'property' && item.key === ABI_PROPERTY,
+    );
+
+    if (existing) {
+      existing.value = SHIPPED_ABIS;
+    } else {
+      config.modResults.push({ type: 'property', key: ABI_PROPERTY, value: SHIPPED_ABIS });
+    }
+
+    return config;
+  });
+}
+
+const RES_CONFIG_MARKER = '// notif-filter: resource configurations';
+// The UI ships English copy only, so AndroidX/Compose translations are dead weight.
+// Appended as a second android {} block rather than spliced into the generated one.
+const RES_CONFIG_BLOCK = `
+${RES_CONFIG_MARKER}
+android {
+    defaultConfig {
+        resourceConfigurations += ['en']
+    }
+}
+`;
+
+function withEnglishOnlyResources(config) {
+  return withAppBuildGradle(config, (config) => {
+    if (!config.modResults.contents.includes(RES_CONFIG_MARKER)) {
+      config.modResults.contents += RES_CONFIG_BLOCK;
+    }
+
+    return config;
+  });
+}
 
 function withNotifFilterService(config) {
   return withAndroidManifest(config, async (config) => {
@@ -85,7 +129,12 @@ function withoutInternetInRelease(config) {
 }
 
 function withNotifFilter(config) {
-  return withPlugins(config, [withNotifFilterService, withoutInternetInRelease]);
+  return withPlugins(config, [
+    withNotifFilterService,
+    withoutInternetInRelease,
+    withShippedAbis,
+    withEnglishOnlyResources,
+  ]);
 }
 
 module.exports = withNotifFilter;

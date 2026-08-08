@@ -38,7 +38,11 @@
           "android": {
             "compileSdkVersion": 36,
             "targetSdkVersion": 36,
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "useLegacyPackaging": true,
+            "enableBundleCompression": true,
+            "enableMinifyInReleaseBuilds": true,
+            "extraProguardRules": "# The platform instantiates the listener service by class name from the merged\n# manifest, so R8 renaming or stripping it disables filtering with no visible error.\n-keep class app.notiffilter.NotifFilterService { *; }\n-keep class app.notiffilter.NotifFilterModule { *; }\n"
           }
         }
       ]
