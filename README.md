@@ -11,8 +11,8 @@ The UI is React Native (Expo SDK 57) — rule management only. The heavy lifting
 ## Quick start
 
 ```bash
-npm install
-npx expo run:android          # dev build (required — custom native code)
+pnpm install
+pnpm expo run:android          # dev build (required — custom native code)
 ```
 
 Expo Go won't work. This app requires a development build because it ships a custom Kotlin service.
@@ -105,7 +105,7 @@ Open `design-preview.html` in a browser. Press `d` to toggle dark mode.
 
 1. Read AGENTS.md for working instructions
 2. Check the current milestone's GitHub issue for full context
-3. Run `npx tsc --noEmit` after changes — clean build enforced
+3. Run `pnpm exec tsc --noEmit` after changes — clean build enforced
 4. Read PLAN.md sections relevant to the milestone before starting
-5. The app does not use Expo Go — always `npx expo run:android`
+5. The app does not use Expo Go — always `pnpm expo run:android`
 6. All native code goes under `modules/notif-filter/`

@@ -5,7 +5,7 @@ dist/
 web-build/
 .expo/
 .claude/
-package-lock.json
+pnpm-lock.yaml
 CHANGELOG.md
 expo-env.d.ts
 assets/

@@ -12,6 +12,6 @@ Closes #
 
 <!-- What you ran, and what it printed. Say plainly what still needs a device. -->
 
-- `npm run typecheck` / `npm run lint` / `npm run format:check`:
-- `npm run test:android`:
+- `pnpm run typecheck` / `pnpm run lint` / `pnpm run format:check`:
+- `pnpm run test:android`:
 - On device:
