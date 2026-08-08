@@ -26,6 +26,18 @@ updates:
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
 
+      # eslint 10 is blocked by eslint-config-expo, whose eslint-plugin-import and
+      # eslint-plugin-react peer ranges cap at ^9. Drop once both accept ^10.
+      - dependency-name: 'eslint'
+        update-types:
+          - 'version-update:semver-major'
+
+      # TypeScript 7 is blocked by typescript-eslint, which does not support it yet;
+      # `pnpm run lint` exits 2 on it. Drop once typescript-eslint supports TS 7.
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
