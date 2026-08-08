@@ -42,3 +42,6 @@ example
 /ios
 /android
 modules/notif-filter/android/build/
+
+# Agent worktrees created by tooling; never part of the project
+.claude/worktrees/
