@@ -1,8 +1,8 @@
-import { create } from "zustand";
-import * as NotifFilter from "../../modules/notif-filter/src/index";
+import { create } from 'zustand';
+import * as NotifFilter from '../../modules/notif-filter/src/index';
 
-type ThemePreference = "system" | "light" | "dark";
-type DefaultPolicy = "allow" | "block";
+type ThemePreference = 'system' | 'light' | 'dark';
+type DefaultPolicy = 'allow' | 'block';
 
 type SettingsState = {
   defaultPolicy: DefaultPolicy;
@@ -24,12 +24,12 @@ type SettingsState = {
 function persist(
   s: Pick<
     SettingsState,
-    | "defaultPolicy"
-    | "filterOngoing"
-    | "logSize"
-    | "themePreference"
-    | "onboardingDone"
-    | "ignoredPackages"
+    | 'defaultPolicy'
+    | 'filterOngoing'
+    | 'logSize'
+    | 'themePreference'
+    | 'onboardingDone'
+    | 'ignoredPackages'
   >,
 ): void {
   NotifFilter.saveSettings(
@@ -45,7 +45,7 @@ function persist(
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  defaultPolicy: "allow",
+  defaultPolicy: 'allow',
   setDefaultPolicy: (defaultPolicy) => {
     set((s) => {
       persist({ ...s, defaultPolicy });
@@ -66,7 +66,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       return { logSize };
     });
   },
-  themePreference: "system",
+  themePreference: 'system',
   setThemePreference: (themePreference) => {
     set((s) => {
       persist({ ...s, themePreference });
@@ -93,10 +93,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       const json = NotifFilter.getSettings();
       const data = JSON.parse(json);
       set({
-        defaultPolicy: data.defaultPolicy ?? "allow",
+        defaultPolicy: data.defaultPolicy ?? 'allow',
         filterOngoing: data.filterOngoing ?? false,
         logSize: data.logSize ?? 500,
-        themePreference: data.theme ?? "system",
+        themePreference: data.theme ?? 'system',
         onboardingDone: data.onboardingDone ?? false,
         ignoredPackages: data.ignoredPackages ?? [],
         loaded: true,

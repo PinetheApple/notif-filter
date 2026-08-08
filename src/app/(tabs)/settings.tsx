@@ -1,34 +1,20 @@
-import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  Switch,
-  Pressable,
-  TextInput,
-  Alert,
-  ScrollView,
-  Linking,
-} from "react-native";
-import Constants from "expo-constants";
-import { useRouter, useFocusEffect } from "expo-router";
-import {
-  ArrowSquareOut,
-  CaretRight,
-  Export,
-  FileArrowDown,
-} from "phosphor-react-native";
-import { useColorScheme } from "nativewind";
+import { useState, useCallback } from 'react';
+import { View, Text, Switch, Pressable, TextInput, Alert, ScrollView, Linking } from 'react-native';
+import Constants from 'expo-constants';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { ArrowSquareOut, CaretRight, Export, FileArrowDown } from 'phosphor-react-native';
+import { useColorScheme } from 'nativewind';
 
-import { ListRow, ListSection, Separator } from "@/components/ui";
-import { useSettingsStore } from "@/stores/settings";
-import { usePickerStore, PICKER_PURPOSE } from "@/stores/picker";
-import { useRulesStore, type Rule } from "@/stores/rules";
-import { usePermissionStore } from "@/stores/permissions";
-import { palette, COLORS } from "@/constants/colors";
-import * as NotifFilter from "../../../modules/notif-filter/src/index";
+import { ListRow, ListSection, Separator } from '@/components/ui';
+import { useSettingsStore } from '@/stores/settings';
+import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
+import { useRulesStore, type Rule } from '@/stores/rules';
+import { usePermissionStore } from '@/stores/permissions';
+import { palette, COLORS } from '@/constants/colors';
+import * as NotifFilter from '../../../modules/notif-filter/src/index';
 
-const REPO_URL = "https://github.com/PinetheApple/notif-filter";
-const APP_VERSION = Constants.expoConfig?.version ?? "unknown";
+const REPO_URL = 'https://github.com/PinetheApple/notif-filter';
+const APP_VERSION = Constants.expoConfig?.version ?? 'unknown';
 
 function isSameSelection(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((pkg, i) => pkg === b[i]);
@@ -51,20 +37,18 @@ function SegmentedPicker<T extends string>({
           onPress={() => onChange(opt)}
           className={`px-3 py-1.5 ${
             opt === value
-              ? "bg-accent dark:bg-accent-dark"
-              : "bg-surface-secondary dark:bg-surface-dark-secondary"
+              ? 'bg-accent dark:bg-accent-dark'
+              : 'bg-surface-secondary dark:bg-surface-dark-secondary'
           }`}
         >
           <Text
             className={`text-xs font-medium ${
               opt === value
-                ? "text-accent-text dark:text-accent-text-dark"
-                : "text-surface-dark dark:text-white"
+                ? 'text-accent-text dark:text-accent-text-dark'
+                : 'text-surface-dark dark:text-white'
             }`}
           >
-            {opt === "system"
-              ? "Auto"
-              : opt.charAt(0).toUpperCase() + opt.slice(1)}
+            {opt === 'system' ? 'Auto' : opt.charAt(0).toUpperCase() + opt.slice(1)}
           </Text>
         </Pressable>
       ))}
@@ -75,7 +59,7 @@ function SegmentedPicker<T extends string>({
 export default function SettingsScreen() {
   const router = useRouter();
   const { colorScheme, setColorScheme } = useColorScheme();
-  const scheme = colorScheme === "dark" ? "dark" : "light";
+  const scheme = colorScheme === 'dark' ? 'dark' : 'light';
   const p = palette(scheme);
 
   const defaultPolicy = useSettingsStore((s) => s.defaultPolicy);
@@ -89,14 +73,12 @@ export default function SettingsScreen() {
 
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const rules = useRulesStore((s) => s.rules);
-  const requestPostNotifications = usePermissionStore(
-    (s) => s.requestPostNotifications,
-  );
+  const requestPostNotifications = usePermissionStore((s) => s.requestPostNotifications);
   const importRules = useRulesStore((s) => s.importRules);
 
   const [logSizeText, setLogSizeText] = useState(String(logSize));
   const [importVisible, setImportVisible] = useState(false);
-  const [importJson, setImportJson] = useState("");
+  const [importJson, setImportJson] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -109,7 +91,7 @@ export default function SettingsScreen() {
 
   function handleIgnoredAppsTap() {
     usePickerStore.getState().open(PICKER_PURPOSE.ignoredApps, ignoredPackages);
-    router.push("/picker");
+    router.push('/picker');
   }
 
   function handleLogSizeChange(text: string) {
@@ -125,49 +107,43 @@ export default function SettingsScreen() {
   }
 
   function handleThemeChange(v: string) {
-    setColorScheme(v as "system" | "light" | "dark");
-    setThemePreference(v as "system" | "light" | "dark");
+    setColorScheme(v as 'system' | 'light' | 'dark');
+    setThemePreference(v as 'system' | 'light' | 'dark');
   }
 
   async function handleSendTest() {
     const granted = await requestPostNotifications();
     if (!granted) {
       Alert.alert(
-        "Notification permission needed",
-        "Android will not show notifications from NotifFilter until you allow them in system settings.",
+        'Notification permission needed',
+        'Android will not show notifications from NotifFilter until you allow them in system settings.',
       );
       return;
     }
 
-    NotifFilter.postTestNotification(
-      "Test notification",
-      "This is a test from NotifFilter",
-    );
+    NotifFilter.postTestNotification('Test notification', 'This is a test from NotifFilter');
   }
 
   function handleExport() {
     const json = JSON.stringify(rules, null, 2);
-    const { Share } = require("react-native");
-    Share.share({ message: json, title: "NotifFilter rules export" });
+    const { Share } = require('react-native');
+    Share.share({ message: json, title: 'NotifFilter rules export' });
   }
 
   function handleImportTap() {
     setImportVisible(!importVisible);
-    setImportJson("");
+    setImportJson('');
   }
 
   function handleOpenRepo() {
     Linking.openURL(REPO_URL);
   }
 
-  function handleImportExecute(mode: "merge" | "replace") {
+  function handleImportExecute(mode: 'merge' | 'replace') {
     try {
       const parsed: Rule[] = JSON.parse(importJson);
       if (!Array.isArray(parsed) || !parsed.every((r) => r.id && r.pattern)) {
-        Alert.alert(
-          "Invalid format",
-          "The pasted text is not a valid rules export.",
-        );
+        Alert.alert('Invalid format', 'The pasted text is not a valid rules export.');
         return;
       }
       importRules(
@@ -175,9 +151,9 @@ export default function SettingsScreen() {
         mode,
       );
       setImportVisible(false);
-      setImportJson("");
+      setImportJson('');
     } catch {
-      Alert.alert("Invalid JSON", "Could not parse the pasted text.");
+      Alert.alert('Invalid JSON', 'Could not parse the pasted text.');
     }
   }
 
@@ -189,13 +165,13 @@ export default function SettingsScreen() {
             <ListRow
               label="Default policy"
               description={
-                defaultPolicy === "allow"
-                  ? "Show everything unless a rule blocks it"
-                  : "Block everything unless a rule allows it"
+                defaultPolicy === 'allow'
+                  ? 'Show everything unless a rule blocks it'
+                  : 'Block everything unless a rule allows it'
               }
               action={
                 <SegmentedPicker
-                  options={["allow", "block"] as const}
+                  options={['allow', 'block'] as const}
                   value={defaultPolicy}
                   onChange={setDefaultPolicy}
                 />
@@ -254,13 +230,11 @@ export default function SettingsScreen() {
           <ListSection>
             <ListRow
               label="Theme"
-              description={colorScheme === "dark" ? "Dark mode" : "Light mode"}
+              description={colorScheme === 'dark' ? 'Dark mode' : 'Light mode'}
               action={
                 <SegmentedPicker
-                  options={["system", "light", "dark"] as const}
-                  value={
-                    (colorScheme as "system" | "light" | "dark") ?? "system"
-                  }
+                  options={['system', 'light', 'dark'] as const}
+                  value={(colorScheme as 'system' | 'light' | 'dark') ?? 'system'}
                   onChange={handleThemeChange}
                 />
               }
@@ -287,12 +261,9 @@ export default function SettingsScreen() {
           <ListSection>
             <ListRow
               label="Export rules"
-              description={`${rules.length} rule${rules.length === 1 ? "" : "s"} as JSON`}
+              description={`${rules.length} rule${rules.length === 1 ? '' : 's'} as JSON`}
               action={
-                <Pressable
-                  onPress={handleExport}
-                  className="flex-row items-center gap-1"
-                >
+                <Pressable onPress={handleExport} className="flex-row items-center gap-1">
                   <Export size={16} weight="regular" color={p.muted} />
                 </Pressable>
               }
@@ -302,10 +273,7 @@ export default function SettingsScreen() {
               label="Import rules"
               description="Paste JSON from a previous export"
               action={
-                <Pressable
-                  onPress={handleImportTap}
-                  className="flex-row items-center gap-1"
-                >
+                <Pressable onPress={handleImportTap} className="flex-row items-center gap-1">
                   <FileArrowDown size={16} weight="regular" color={p.muted} />
                 </Pressable>
               }
@@ -324,7 +292,7 @@ export default function SettingsScreen() {
                 />
                 <View className="flex-row gap-2">
                   <Pressable
-                    onPress={() => handleImportExecute("replace")}
+                    onPress={() => handleImportExecute('replace')}
                     className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
                   >
                     <Text className="text-center text-xs font-medium text-accent-text dark:text-accent-text-dark">
@@ -332,7 +300,7 @@ export default function SettingsScreen() {
                     </Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => handleImportExecute("merge")}
+                    onPress={() => handleImportExecute('merge')}
                     className="flex-1 rounded bg-surface-secondary px-3 py-1.5 active:bg-surface-tertiary dark:bg-surface-dark-secondary dark:active:bg-surface-dark-tertiary"
                   >
                     <Text className="text-center text-xs font-medium text-surface-dark dark:text-white">
@@ -348,9 +316,7 @@ export default function SettingsScreen() {
             <ListRow
               label="Version"
               action={
-                <Text className="text-sm text-muted dark:text-muted-dark">
-                  {APP_VERSION}
-                </Text>
+                <Text className="text-sm text-muted dark:text-muted-dark">{APP_VERSION}</Text>
               }
             />
             <Separator />
@@ -366,9 +332,7 @@ export default function SettingsScreen() {
               <ListRow
                 label="Source code"
                 description="github.com/PinetheApple/notif-filter"
-                action={
-                  <ArrowSquareOut size={16} weight="regular" color={p.muted} />
-                }
+                action={<ArrowSquareOut size={16} weight="regular" color={p.muted} />}
               />
             </Pressable>
           </ListSection>

@@ -1,19 +1,19 @@
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Image, Pressable } from 'react-native';
 import {
   ArrowCounterClockwise,
   CaretDown,
   CaretUp,
   PlusCircle,
   Prohibit,
-} from "phosphor-react-native";
+} from 'phosphor-react-native';
 
-import { Badge } from "@/components/ui";
-import { palette } from "@/constants/colors";
-import type { HistoryEntry } from "../../modules/notif-filter/src/index";
+import { Badge } from '@/components/ui';
+import { palette } from '@/constants/colors';
+import type { HistoryEntry } from '../../modules/notif-filter/src/index';
 
 const BODY_PREVIEW_LINES = 2;
 const CARET_SIZE = 14;
-const META_SEPARATOR = " · ";
+const META_SEPARATOR = ' · ';
 
 /** Body length past which the collapsed preview is likely cutting text off. */
 const PREVIEW_OVERFLOW_LENGTH = 120;
@@ -21,7 +21,7 @@ const PREVIEW_OVERFLOW_LENGTH = 120;
 function relativeTime(ts: number): string {
   const diff = Date.now() - ts;
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
@@ -33,37 +33,35 @@ function relativeTime(ts: number): string {
 
 function dispositionLabel(entry: HistoryEntry): {
   text: string;
-  variant: "allow" | "deny";
+  variant: 'allow' | 'deny';
 } {
-  if (entry.disposition === "blocked") {
+  if (entry.disposition === 'blocked') {
     const rule = entry.ruleLabel ?? entry.ruleId;
-    const suffix = rule ? ` by "${rule}"` : " by default policy";
-    return { text: `Blocked${suffix}`, variant: "deny" };
+    const suffix = rule ? ` by "${rule}"` : ' by default policy';
+    return { text: `Blocked${suffix}`, variant: 'deny' };
   }
   const rule = entry.ruleLabel ?? entry.ruleId;
-  const suffix = rule ? ` by "${rule}"` : " — no rules matched";
-  return { text: `Allowed${suffix}`, variant: "allow" };
+  const suffix = rule ? ` by "${rule}"` : ' — no rules matched';
+  return { text: `Allowed${suffix}`, variant: 'allow' };
 }
 
 /** The long-form body, when it says more than the collapsed `text` line already does. */
 function expandedBody(entry: HistoryEntry): string {
-  const big = entry.bigText ?? "";
-  return big && big !== entry.text ? big : "";
+  const big = entry.bigText ?? '';
+  return big && big !== entry.text ? big : '';
 }
 
 /** Ancillary labels (sub/summary/info), deduplicated into one muted line. */
 function metaLine(entry: HistoryEntry): string {
-  const parts = [entry.subText, entry.summaryText, entry.infoText].filter(
-    (part): part is string => Boolean(part),
+  const parts = [entry.subText, entry.summaryText, entry.infoText].filter((part): part is string =>
+    Boolean(part),
   );
   return Array.from(new Set(parts)).join(META_SEPARATOR);
 }
 
 function extraLines(entry: HistoryEntry): string {
-  const lines = entry.textLines ?? "";
-  return lines && lines !== entry.text && lines !== expandedBody(entry)
-    ? lines
-    : "";
+  const lines = entry.textLines ?? '';
+  return lines && lines !== entry.text && lines !== expandedBody(entry) ? lines : '';
 }
 
 function hasDetail(entry: HistoryEntry): boolean {
@@ -85,7 +83,7 @@ export function HistoryItem({
   onAllowApp,
 }: {
   entry: HistoryEntry;
-  scheme: "light" | "dark";
+  scheme: 'light' | 'dark';
   expanded: boolean;
   onToggleExpand: (id: string) => void;
   onRestore: (id: string) => void;
@@ -143,18 +141,13 @@ export function HistoryItem({
               <Text className="text-xs text-muted dark:text-muted-dark">
                 {relativeTime(entry.timestamp)}
               </Text>
-              {expandable ? (
-                <Caret size={CARET_SIZE} weight="regular" color={p.muted} />
-              ) : null}
+              {expandable ? <Caret size={CARET_SIZE} weight="regular" color={p.muted} /> : null}
             </View>
           </View>
 
           {/* Title */}
           {entry.title ? (
-            <Text
-              className="text-sm text-surface-dark dark:text-white"
-              numberOfLines={2}
-            >
+            <Text className="text-sm text-surface-dark dark:text-white" numberOfLines={2}>
               {entry.title}
             </Text>
           ) : null}
@@ -173,29 +166,20 @@ export function HistoryItem({
           {expanded ? (
             <View className="gap-1 border-l-2 border-surface-secondary pl-2 dark:border-surface-dark-secondary">
               {body ? (
-                <Text className="text-sm text-surface-dark dark:text-white">
-                  {body}
-                </Text>
+                <Text className="text-sm text-surface-dark dark:text-white">{body}</Text>
               ) : null}
               {lines ? (
-                <Text className="text-sm text-surface-dark dark:text-white">
-                  {lines}
-                </Text>
+                <Text className="text-sm text-surface-dark dark:text-white">{lines}</Text>
               ) : null}
               {meta ? (
-                <Text className="text-xs text-muted dark:text-muted-dark">
-                  {meta}
-                </Text>
+                <Text className="text-xs text-muted dark:text-muted-dark">{meta}</Text>
               ) : null}
             </View>
           ) : null}
 
           {/* Matched segment */}
           {entry.matchedSegment ? (
-            <Text
-              className="font-mono text-xs text-accent dark:text-accent-dark"
-              numberOfLines={1}
-            >
+            <Text className="font-mono text-xs text-accent dark:text-accent-dark" numberOfLines={1}>
               matched: {entry.matchedSegment}
             </Text>
           ) : null}
@@ -203,24 +187,20 @@ export function HistoryItem({
           {/* Disposition */}
           <View className="flex-row flex-wrap items-center gap-2">
             <Badge label={disp.text} variant={disp.variant} />
-            {entry.recovered ? (
-              <Badge label="Recovered" variant="neutral" />
-            ) : null}
+            {entry.recovered ? <Badge label="Recovered" variant="neutral" /> : null}
           </View>
         </View>
       </Pressable>
 
       {/* Actions */}
       <View className="mt-2 flex-row gap-2 border-t border-surface-secondary pt-2 dark:border-surface-dark-secondary">
-        {entry.disposition === "blocked" ? (
+        {entry.disposition === 'blocked' ? (
           <Pressable
             onPress={handleRestore}
             className="flex-row items-center gap-1 rounded px-2 py-1 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
           >
             <ArrowCounterClockwise size={14} weight="regular" color={p.muted} />
-            <Text className="text-xs text-muted dark:text-muted-dark">
-              Restore
-            </Text>
+            <Text className="text-xs text-muted dark:text-muted-dark">Restore</Text>
           </Pressable>
         ) : null}
         <Pressable
@@ -228,18 +208,14 @@ export function HistoryItem({
           className="flex-row items-center gap-1 rounded px-2 py-1 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
         >
           <Prohibit size={14} weight="regular" color={p.muted} />
-          <Text className="text-xs text-muted dark:text-muted-dark">
-            Block app
-          </Text>
+          <Text className="text-xs text-muted dark:text-muted-dark">Block app</Text>
         </Pressable>
         <Pressable
           onPress={handleAllowApp}
           className="flex-row items-center gap-1 rounded px-2 py-1 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
         >
           <PlusCircle size={14} weight="regular" color={p.muted} />
-          <Text className="text-xs text-muted dark:text-muted-dark">
-            Allow app
-          </Text>
+          <Text className="text-xs text-muted dark:text-muted-dark">Allow app</Text>
         </Pressable>
       </View>
     </View>

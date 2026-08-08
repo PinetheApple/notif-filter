@@ -42,16 +42,14 @@ function withNotifFilterService(config) {
         $: {
           'android:name': 'app.notiffilter.NotifFilterService',
           'android:exported': 'false',
-          'android:permission':
-            'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE',
+          'android:permission': 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE',
         },
         'intent-filter': [
           {
             action: [
               {
                 $: {
-                  'android:name':
-                    'android.service.notification.NotificationListenerService',
+                  'android:name': 'android.service.notification.NotificationListenerService',
                 },
               },
             ],
@@ -60,10 +58,8 @@ function withNotifFilterService(config) {
         'meta-data': [
           {
             $: {
-              'android:name':
-                'android.service.notification.default_filter_types',
-              'android:value':
-                'conversations|alerting|silent|ongoing',
+              'android:name': 'android.service.notification.default_filter_types',
+              'android:value': 'conversations|alerting|silent|ongoing',
             },
           },
         ],

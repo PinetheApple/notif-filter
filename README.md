@@ -33,6 +33,7 @@ Expo Go won't work. This app requires a development build because it ships a cus
 ```
 
 Key decisions:
+
 - Filtering is native (Kotlin), not JS — must work when the app process is killed
 - Rules live in `SharedPreferences` (single source of truth, read by both JS and the service)
 - History in SQLite (written by service, read by JS via Expo Module)
@@ -40,15 +41,15 @@ Key decisions:
 
 ## Stack
 
-| Concern | Choice | Version |
-|---|---|---|
-| Runtime | Expo SDK 57 | 57.0.x |
-| React Native | 0.86.x (New Arch only) | 0.86.x |
-| Navigation | expo-router (tabs) | 57.x |
-| Styling | NativeWind 4 + Tailwind 3.4 | 4.2.x |
-| State | zustand | 5.x |
-| Icons | Phosphor (phosphor-react-native) | 3.x |
-| Android | targetSdk 36, minSdk 26 | |
+| Concern      | Choice                           | Version |
+| ------------ | -------------------------------- | ------- |
+| Runtime      | Expo SDK 57                      | 57.0.x  |
+| React Native | 0.86.x (New Arch only)           | 0.86.x  |
+| Navigation   | expo-router (tabs)               | 57.x    |
+| Styling      | NativeWind 4 + Tailwind 3.4      | 4.2.x   |
+| State        | zustand                          | 5.x     |
+| Icons        | Phosphor (phosphor-react-native) | 3.x     |
+| Android      | targetSdk 36, minSdk 26          |         |
 
 ## Project structure
 
@@ -75,14 +76,14 @@ modules/
 
 ## Milestones
 
-| # | Phase | Status | GitHub |
-|---|---|---|---|
-| M0 | Scaffold | ✅ Done | — |
-| M1 | Native core + permission flow | 🔲 | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
-| M2 | Rule engine + RuleStore + app inventory | 🔲 | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
-| M3 | Rules UI: editor, picker, regex test | 🔲 | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
-| M4 | History: SQLite log, restore | 🔲 | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
-| M5 | Polish: onboarding, anti-slop, e2e, APK | 🔲 | [#6](https://github.com/PinetheApple/notif-filter/issues/6) |
+| #   | Phase                                   | Status  | GitHub                                                      |
+| --- | --------------------------------------- | ------- | ----------------------------------------------------------- |
+| M0  | Scaffold                                | ✅ Done | —                                                           |
+| M1  | Native core + permission flow           | 🔲      | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
+| M2  | Rule engine + RuleStore + app inventory | 🔲      | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
+| M3  | Rules UI: editor, picker, regex test    | 🔲      | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
+| M4  | History: SQLite log, restore            | 🔲      | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
+| M5  | Polish: onboarding, anti-slop, e2e, APK | 🔲      | [#6](https://github.com/PinetheApple/notif-filter/issues/6) |
 
 Work through them in order. Each milestone has full acceptance criteria in the issue body.
 

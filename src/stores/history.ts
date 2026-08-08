@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import * as NotifFilter from "../../modules/notif-filter/src/index";
-import type { HistoryEntry } from "../../modules/notif-filter/src/index";
+import { create } from 'zustand';
+import * as NotifFilter from '../../modules/notif-filter/src/index';
+import type { HistoryEntry } from '../../modules/notif-filter/src/index';
 
 const PAGE_SIZE = 30;
 

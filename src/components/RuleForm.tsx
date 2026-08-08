@@ -1,25 +1,18 @@
-import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Switch,
-  Pressable,
-  ScrollView,
-} from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
-import { CaretLeft, CaretRight } from "phosphor-react-native";
+import { useState, useCallback } from 'react';
+import { View, Text, TextInput, Switch, Pressable, ScrollView } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { CaretLeft, CaretRight } from 'phosphor-react-native';
 
-import { useRulesStore, type Rule, type RuleAction } from "@/stores/rules";
-import { usePickerStore, PICKER_PURPOSE } from "@/stores/picker";
-import { palette, COLORS } from "@/constants/colors";
-import * as NotifFilter from "../../modules/notif-filter/src/index";
+import { useRulesStore, type Rule, type RuleAction } from '@/stores/rules';
+import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
+import { palette, COLORS } from '@/constants/colors';
+import * as NotifFilter from '../../modules/notif-filter/src/index';
 
 type Props = {
   initialRule?: Rule;
   /** Prefilled values for a rule that does not exist yet. Never persisted on its own. */
   draft?: Partial<Rule>;
-  scheme: "light" | "dark";
+  scheme: 'light' | 'dark';
 };
 
 function Segment<T extends string>({
@@ -39,15 +32,15 @@ function Segment<T extends string>({
           onPress={() => onChange(opt)}
           className={`flex-1 px-3 py-2 ${
             opt === value
-              ? "bg-accent dark:bg-accent-dark"
-              : "bg-surface-secondary dark:bg-surface-dark-secondary"
+              ? 'bg-accent dark:bg-accent-dark'
+              : 'bg-surface-secondary dark:bg-surface-dark-secondary'
           }`}
         >
           <Text
             className={`text-center text-sm font-medium ${
               opt === value
-                ? "text-accent-text dark:text-accent-text-dark"
-                : "text-surface-dark dark:text-white"
+                ? 'text-accent-text dark:text-accent-text-dark'
+                : 'text-surface-dark dark:text-white'
             }`}
           >
             {opt}
@@ -67,23 +60,15 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
 
   const isEdit = !!initialRule;
   const initial = initialRule ?? draft;
-  const [label, setLabel] = useState(initial?.label ?? "");
-  const [pattern, setPattern] = useState(initial?.pattern ?? "");
-  const [caseInsensitive, setCaseInsensitive] = useState(
-    initial?.caseInsensitive ?? false,
-  );
-  const [field, setField] = useState<"title" | "text" | "any">(
-    initial?.field ?? "any",
-  );
-  const [action, setAction] = useState<RuleAction>(initial?.action ?? "deny");
-  const [scopeKind, setScopeKind] = useState<"all" | "packages">(
-    initial?.scopeKind ?? "all",
-  );
-  const [scopePackages, setScopePackages] = useState<string[]>(
-    initial?.scopePackages ?? [],
-  );
+  const [label, setLabel] = useState(initial?.label ?? '');
+  const [pattern, setPattern] = useState(initial?.pattern ?? '');
+  const [caseInsensitive, setCaseInsensitive] = useState(initial?.caseInsensitive ?? false);
+  const [field, setField] = useState<'title' | 'text' | 'any'>(initial?.field ?? 'any');
+  const [action, setAction] = useState<RuleAction>(initial?.action ?? 'deny');
+  const [scopeKind, setScopeKind] = useState<'all' | 'packages'>(initial?.scopeKind ?? 'all');
+  const [scopePackages, setScopePackages] = useState<string[]>(initial?.scopePackages ?? []);
 
-  const [sampleText, setSampleText] = useState("");
+  const [sampleText, setSampleText] = useState('');
   const [testResult, setTestResult] = useState<{
     matches: boolean;
     matchedSegment: string;
@@ -95,7 +80,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
       return;
     }
     try {
-      const result = NotifFilter.testPattern(patt, ci, sample, "");
+      const result = NotifFilter.testPattern(patt, ci, sample, '');
       setTestResult(result);
     } catch {
       setTestResult(null);
@@ -120,10 +105,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
   useFocusEffect(
     useCallback(() => {
       const picker = usePickerStore.getState();
-      if (
-        scopeKind === "packages" &&
-        picker.purpose === PICKER_PURPOSE.ruleScope
-      ) {
+      if (scopeKind === 'packages' && picker.purpose === PICKER_PURPOSE.ruleScope) {
         setScopePackages(picker.selected);
       }
     }, [scopeKind]),
@@ -136,15 +118,12 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
   function openAppPicker() {
     usePickerStore
       .getState()
-      .open(
-        PICKER_PURPOSE.ruleScope,
-        scopeKind === "packages" ? scopePackages : [],
-      );
-    router.push("/picker");
+      .open(PICKER_PURPOSE.ruleScope, scopeKind === 'packages' ? scopePackages : []);
+    router.push('/picker');
   }
 
   function handleSave() {
-    const packages = scopeKind === "packages" ? scopePackages : [];
+    const packages = scopeKind === 'packages' ? scopePackages : [];
 
     if (isEdit && initialRule) {
       updateRule(initialRule.id, {
@@ -186,22 +165,22 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
           <CaretLeft size={22} weight="regular" color={p.text} />
         </Pressable>
         <Text className="flex-1 text-lg font-medium text-surface-dark dark:text-white">
-          {isEdit ? "Edit rule" : "New rule"}
+          {isEdit ? 'Edit rule' : 'New rule'}
         </Text>
         <Pressable
           onPress={handleSave}
           disabled={!canSave}
           className={`rounded-lg px-4 py-2 ${
             canSave
-              ? "bg-accent dark:bg-accent-dark active:bg-accent-pressed dark:active:bg-accent-pressed-dark"
-              : "bg-surface-secondary dark:bg-surface-dark-secondary"
+              ? 'bg-accent active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark'
+              : 'bg-surface-secondary dark:bg-surface-dark-secondary'
           }`}
         >
           <Text
             className={`text-sm font-medium ${
               canSave
-                ? "text-accent-text dark:text-accent-text-dark"
-                : "text-muted dark:text-muted-dark"
+                ? 'text-accent-text dark:text-accent-text-dark'
+                : 'text-muted dark:text-muted-dark'
             }`}
           >
             Save
@@ -224,23 +203,21 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
         </View>
 
         <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            App scope
-          </Text>
+          <Text className="text-xs font-medium text-muted dark:text-muted-dark">App scope</Text>
           <Segment
-            options={["all", "packages"] as const}
+            options={['all', 'packages'] as const}
             value={scopeKind}
             onChange={setScopeKind}
           />
-          {scopeKind === "packages" ? (
+          {scopeKind === 'packages' ? (
             <Pressable
               onPress={openAppPicker}
               className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
             >
               <Text className="text-sm text-surface-dark dark:text-white">
                 {scopePackages.length > 0
-                  ? `${scopePackages.length} app${scopePackages.length === 1 ? "" : "s"} selected`
-                  : "Choose apps"}
+                  ? `${scopePackages.length} app${scopePackages.length === 1 ? '' : 's'} selected`
+                  : 'Choose apps'}
               </Text>
               <CaretRight size={16} weight="regular" color={p.muted} />
             </Pressable>
@@ -248,14 +225,8 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
         </View>
 
         <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            Match field
-          </Text>
-          <Segment
-            options={["title", "text", "any"] as const}
-            value={field}
-            onChange={setField}
-          />
+          <Text className="text-xs font-medium text-muted dark:text-muted-dark">Match field</Text>
+          <Segment options={['title', 'text', 'any'] as const} value={field} onChange={setField} />
         </View>
 
         <View className="mt-5 gap-1">
@@ -272,9 +243,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
             className="rounded-lg bg-surface-secondary px-3 py-2.5 font-mono text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
           />
           <View className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2 dark:bg-surface-dark-secondary">
-            <Text className="text-sm text-surface-dark dark:text-white">
-              Case insensitive
-            </Text>
+            <Text className="text-sm text-surface-dark dark:text-white">Case insensitive</Text>
             <Switch
               value={caseInsensitive}
               onValueChange={handleCaseInsensitiveChange}
@@ -288,14 +257,8 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
         </View>
 
         <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            Action
-          </Text>
-          <Segment
-            options={["deny", "allow"] as const}
-            value={action}
-            onChange={setAction}
-          />
+          <Text className="text-xs font-medium text-muted dark:text-muted-dark">Action</Text>
+          <Segment options={['deny', 'allow'] as const} value={action} onChange={setAction} />
         </View>
 
         <View className="mt-6 gap-1">
@@ -313,18 +276,18 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
             <View
               className={`mt-1 flex-row items-center gap-2 rounded-lg px-3 py-2 ${
                 testResult.matches
-                  ? "bg-green-100 dark:bg-green-900"
-                  : "bg-surface-secondary dark:bg-surface-dark-secondary"
+                  ? 'bg-green-100 dark:bg-green-900'
+                  : 'bg-surface-secondary dark:bg-surface-dark-secondary'
               }`}
             >
               <Text
                 className={`text-xs font-medium ${
                   testResult.matches
-                    ? "text-green-800 dark:text-green-200"
-                    : "text-muted dark:text-muted-dark"
+                    ? 'text-green-800 dark:text-green-200'
+                    : 'text-muted dark:text-muted-dark'
                 }`}
               >
-                {testResult.matches ? "Match" : "No match"}
+                {testResult.matches ? 'Match' : 'No match'}
               </Text>
               {testResult.matches && testResult.matchedSegment ? (
                 <Text
