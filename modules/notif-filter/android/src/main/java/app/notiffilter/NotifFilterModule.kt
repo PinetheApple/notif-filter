@@ -25,7 +25,7 @@ class NotifFilterModule : Module() {
     private val listenerConnected
         get() = NotifFilterService.isConnected
 
-    private val ruleStore by lazy { RuleStore(context) }
+    private val ruleStore by lazy { RuleStore.get(context) }
     private val historyStore by lazy { HistoryStore(context) }
 
     /** Simple in-memory cache for app icons (max ~50 entries). */

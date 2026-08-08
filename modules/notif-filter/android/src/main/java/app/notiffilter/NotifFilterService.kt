@@ -46,7 +46,7 @@ class NotifFilterService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         backfillExecutor = Executors.newSingleThreadExecutor()
-        ruleStore = RuleStore(this)
+        ruleStore = RuleStore.get(this)
         ruleStore.onChange = {
             Log.i(TAG, "Rules/settings reloaded (${ruleStore.compiledRules.size} compiled rules)")
         }
@@ -132,6 +132,8 @@ class NotifFilterService : NotificationListenerService() {
     override fun onDestroy() {
         isTornDown = true
         backfillExecutor.shutdownNow()
+        // The store outlives the service now, so a retained listener pins a dead service.
+        ruleStore.onChange = null
         super.onDestroy()
     }
 

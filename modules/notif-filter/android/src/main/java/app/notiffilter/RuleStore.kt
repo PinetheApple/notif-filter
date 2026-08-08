@@ -14,6 +14,10 @@ import org.json.JSONObject
  *
  * The service holds a reference to the store and reads the compiled cache
  * on every [onNotificationPosted] callback — no disk I/O in the hot path.
+ *
+ * Use [get] rather than the constructor: the JS bridge and the service run in
+ * one process and must share the cache, or writes from JS never reach the
+ * service. The constructor stays public for tests that need isolation.
  */
 class RuleStore(context: Context) {
 
@@ -21,9 +25,11 @@ class RuleStore(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /** In-memory cache — the service reads this, not the raw prefs. */
+    @Volatile
     var compiledRules: List<CompiledRule> = emptyList()
         private set
 
+    @Volatile
     var settings: Settings = Settings(
         defaultPolicy = "allow",
         filterOngoing = false,
@@ -84,6 +90,18 @@ class RuleStore(context: Context) {
         private const val PREFS_NAME = "notif_filter_rules"
         private const val KEY_RULES = "rules"
         private const val KEY_SETTINGS = "settings"
+
+        @Volatile
+        private var instance: RuleStore? = null
+
+        /**
+         * The process-wide store. Built on the application context so holding it
+         * in a static field cannot leak a Service or Activity.
+         */
+        fun get(context: Context): RuleStore =
+            instance ?: synchronized(this) {
+                instance ?: RuleStore(context.applicationContext).also { instance = it }
+            }
 
         fun parseRules(json: String): List<Rule> {
             val arr = JSONArray(json)
