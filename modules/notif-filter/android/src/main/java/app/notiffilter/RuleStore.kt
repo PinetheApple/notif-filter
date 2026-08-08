@@ -116,12 +116,16 @@ class RuleStore(context: Context) {
 
         fun parseSettings(json: String): Settings {
             val obj = JSONObject(json)
+            val ignored = obj.optJSONArray("ignoredPackages")
             return Settings(
                 defaultPolicy = obj.optString("defaultPolicy", "allow"),
                 filterOngoing = obj.optBoolean("filterOngoing", false),
                 logSize = obj.optInt("logSize", 500),
                 theme = obj.optString("theme", "system"),
-                onboardingDone = obj.optBoolean("onboardingDone", false)
+                onboardingDone = obj.optBoolean("onboardingDone", false),
+                ignoredPackages = if (ignored != null) {
+                    (0 until ignored.length()).map { ignored.getString(it) }
+                } else emptyList()
             )
         }
 
@@ -132,6 +136,7 @@ class RuleStore(context: Context) {
             obj.put("logSize", settings.logSize)
             obj.put("theme", settings.theme)
             obj.put("onboardingDone", settings.onboardingDone)
+            obj.put("ignoredPackages", JSONArray(settings.ignoredPackages))
             return obj.toString()
         }
 

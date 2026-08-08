@@ -7,7 +7,11 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
-import java.util.UUID
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
 class NotifFilterService : NotificationListenerService() {
 
@@ -17,8 +21,14 @@ class NotifFilterService : NotificationListenerService() {
             private set
         var moduleRef: NotifFilterModule? = null
 
-        /** Packages that have posted at least one notification since service start. */
-        val seenPackages: MutableSet<String> = mutableSetOf()
+        /**
+         * Packages that have posted at least one notification since service start.
+         *
+         * Concurrent because the reconnect backfill writes it from a background thread
+         * while the JS bridge reads it.
+         */
+        val seenPackages: MutableSet<String> =
+            Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
         fun isEnabled(context: Context): Boolean =
             NotificationManagerCompat.getEnabledListenerPackages(context)
@@ -27,9 +37,15 @@ class NotifFilterService : NotificationListenerService() {
 
     private lateinit var ruleStore: RuleStore
     private lateinit var historyStore: HistoryStore
+    private lateinit var backfillExecutor: ExecutorService
+
+    /** Set in onDestroy so an in-flight backfill stops touching a torn-down service. */
+    @Volatile
+    private var isTornDown = false
 
     override fun onCreate() {
         super.onCreate()
+        backfillExecutor = Executors.newSingleThreadExecutor()
         ruleStore = RuleStore(this)
         ruleStore.onChange = {
             Log.i(TAG, "Rules/settings reloaded (${ruleStore.compiledRules.size} compiled rules)")
@@ -43,7 +59,61 @@ class NotifFilterService : NotificationListenerService() {
         isConnected = true
         Log.i(TAG, "Listener connected")
         moduleRef?.sendEvent("onListenerConnectionChanged", mapOf("connected" to true))
+        scheduleBackfill()
     }
+
+    /**
+     * Queue the reconnect backfill onto the background thread.
+     *
+     * onListenerConnected runs on the main thread and a full shade costs one
+     * PackageManager IPC and several SQLite statements per notification, which is an ANR
+     * on any reconnect that follows a boot, an update or a force-stop.
+     */
+    private fun scheduleBackfill() {
+        try {
+            backfillExecutor.execute(::recoverActiveNotifications)
+        } catch (e: RejectedExecutionException) {
+            Log.w(TAG, "Reconnect backfill skipped, service is shutting down", e)
+        }
+    }
+
+    /**
+     * Process notifications that arrived while the listener was unbound.
+     *
+     * `onNotificationPosted` only fires while bound, so anything posted during a Doze
+     * window or after a process kill reached nobody: no rule ran and no history row was
+     * written. The still-visible ones are recoverable from [getActiveNotifications].
+     *
+     * Runs on [backfillExecutor]; the listener binder calls it uses are safe off the
+     * main thread.
+     */
+    private fun recoverActiveNotifications() {
+        if (shouldStopBackfill()) return
+
+        val active = try {
+            activeNotifications
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not read active notifications on reconnect", e)
+            return
+        } ?: return
+
+        var recoveredCount = 0
+        for (sbn in active) {
+            if (shouldStopBackfill()) {
+                Log.i(TAG, "Reconnect backfill stopped after $recoveredCount, listener is gone")
+                return
+            }
+            try {
+                if (processNotification(sbn, recovered = true)) recoveredCount++
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to recover notification from ${sbn.packageName}", e)
+            }
+        }
+        Log.i(TAG, "Reconnect backfill: $recoveredCount of ${active.size} notifications recovered")
+    }
+
+    private fun shouldStopBackfill(): Boolean =
+        isTornDown || Thread.currentThread().isInterrupted || !isConnected
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
@@ -59,6 +129,12 @@ class NotifFilterService : NotificationListenerService() {
         }
     }
 
+    override fun onDestroy() {
+        isTornDown = true
+        backfillExecutor.shutdownNow()
+        super.onDestroy()
+    }
+
     // A throw out of this callback kills the service and with it all filtering, so it is
     // a hard error boundary: log and drop the one notification rather than dying.
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -66,27 +142,41 @@ class NotifFilterService : NotificationListenerService() {
         if (sbn == null) return
 
         try {
-            handleNotificationPosted(sbn)
+            processNotification(sbn, recovered = false)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to handle notification from ${sbn.packageName}", e)
         }
     }
 
-    private fun handleNotificationPosted(sbn: StatusBarNotification) {
+    /**
+     * Evaluate [sbn], cancel it if a deny rule matches, and record it in history.
+     *
+     * @param recovered marks a backfilled notification the user has already seen.
+     * @return true when a history row was written.
+     */
+    private fun processNotification(sbn: StatusBarNotification, recovered: Boolean): Boolean {
         val notification = sbn.notification
         val extras = notification.extras
         val isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0
 
+        // Recorded before the exemption check so ignored apps stay listed in the picker
+        // and the user can take them off the ignored list again.
         seenPackages.add(sbn.packageName)
 
         val content = NotificationContent.fromExtras(sbn.packageName, extras, isOngoing)
 
         val settings = ruleStore.settings
+        if (RuleEngine.isExempt(content, settings)) return false
+
+        // Reconnects are frequent and most active notifications are already logged;
+        // re-recording them would re-date the row and duplicate the feed.
+        val id = HistoryEntry.deriveId(sbn.key ?: "", sbn.postTime)
+        if (recovered && historyStore.exists(id)) return false
+
         val result = RuleEngine.evaluate(
             notification = content,
             compiledRules = ruleStore.compiledRules,
-            defaultPolicy = settings.defaultPolicy,
-            filterOngoing = settings.filterOngoing
+            defaultPolicy = settings.defaultPolicy
         )
 
         val now = System.currentTimeMillis()
@@ -96,30 +186,39 @@ class NotifFilterService : NotificationListenerService() {
         }
 
         val entry = HistoryEntry(
-            id = UUID.randomUUID().toString(),
+            id = id,
             packageName = sbn.packageName,
             appLabel = appLabel,
             title = content.title,
             text = content.text,
+            subText = content.subText,
+            bigText = content.bigText,
+            summaryText = content.summaryText,
+            infoText = content.infoText,
+            textLines = content.textLines,
             disposition = if (result.decision == Decision.BLOCK) "blocked" else "shown",
             ruleId = result.ruleId,
             ruleLabel = ruleLabel,
             matchedSegment = result.matchedSegment,
+            notifKey = sbn.key ?: "",
+            recovered = recovered,
             timestamp = now,
             postTime = sbn.postTime
         )
 
+        val origin = if (recovered) "RECOVERED " else ""
         when (result.decision) {
             Decision.BLOCK -> {
                 cancelNotification(sbn.key)
-                Log.i(TAG, "BLOCKED — app=$appLabel title=${content.title}")
+                Log.i(TAG, "${origin}BLOCKED — app=$appLabel title=${content.title}")
             }
             Decision.ALLOW -> {
-                Log.i(TAG, "ALLOW — app=$appLabel title=${content.title}")
+                Log.i(TAG, "${origin}ALLOW — app=$appLabel title=${content.title}")
             }
         }
 
         historyStore.insert(entry)
+        return true
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
