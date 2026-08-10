@@ -17,6 +17,14 @@ reach the user. All matching is native (Java regex in Kotlin), not JS.
   - `--no-fix` reports without rewriting files
   - It reports any file it rewrote — commit those, or CI still fails
 - This app requires a dev build (`pnpm expo run:android`), not Expo Go
+- `./scripts/install-on-device.sh` puts the current build on the attached phone. Use it
+  rather than installing by hand: it builds the release variant (a debug build dies with
+  its Metro packager), reports which key signed the APK, and re-grants notification access,
+  which a reinstall revokes and without which filtering silently does nothing
+- After changing anything in `app.json` or a config plugin, run
+  `pnpm expo prebuild --clean --platform android`. `android/` is generated and gitignored,
+  and a build skips prebuild when it already exists — so plugin changes are silently
+  ignored and you get a differently-configured APK with no error
 
 ## Code style
 
