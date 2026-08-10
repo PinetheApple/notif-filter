@@ -9,9 +9,7 @@ import {
 } from '@/constants/regexHelp';
 
 function SectionHeading({ label }: { label: string }) {
-  return (
-    <Text className="text-xs font-medium text-muted dark:text-muted-dark">{label}</Text>
-  );
+  return <Text className="text-xs font-medium text-muted dark:text-muted-dark">{label}</Text>;
 }
 
 function Note({ note }: { note: HelpNote }) {

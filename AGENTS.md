@@ -10,7 +10,12 @@ reach the user. All matching is native (Java regex in Kotlin), not JS.
 
 - Read the current milestone's GitHub issue for the full spec + acceptance criteria
 - Read the relevant sections of PLAN.md
-- `pnpm exec tsc --noEmit` must pass before committing
+- `./scripts/preflight.sh` must pass before committing. It runs every gate CI runs and
+  auto-fixes formatting and lint, so a red pipeline is caught before pushing. Typechecking
+  alone does not catch a formatting failure and has let one reach `main`
+  - `--skip-android` skips the Gradle job when iterating on JS only
+  - `--no-fix` reports without rewriting files
+  - It reports any file it rewrote — commit those, or CI still fails
 - This app requires a dev build (`pnpm expo run:android`), not Expo Go
 
 ## Code style
