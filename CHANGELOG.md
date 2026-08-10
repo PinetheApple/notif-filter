@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.6](https://github.com/PinetheApple/notif-filter/compare/v0.0.5...v0.0.6) (2026-08-10)
+
+
+### Bug Fixes
+
+* accept scheme-labelled signers in the APK signature check ([#62](https://github.com/PinetheApple/notif-filter/issues/62)) ([b4df3e4](https://github.com/PinetheApple/notif-filter/commit/b4df3e4f97a18e6a21e7484a9a1105a87ae4d024))
+
 ## [0.0.5](https://github.com/PinetheApple/notif-filter/compare/v0.0.4...v0.0.5) (2026-08-10)
 
 
