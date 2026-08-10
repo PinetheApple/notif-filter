@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { View, Text, TextInput, Switch, Pressable, ScrollView } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { CaretLeft, CaretRight } from 'phosphor-react-native';
+import { CaretDown, CaretLeft, CaretRight, CaretUp } from 'phosphor-react-native';
 
+import { RegexHelp } from '@/components/RegexHelp';
 import { useRulesStore, type Rule, type RuleAction } from '@/stores/rules';
 import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
 import { palette, COLORS } from '@/constants/colors';
@@ -69,6 +70,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
   const [scopePackages, setScopePackages] = useState<string[]>(initial?.scopePackages ?? []);
 
   const [sampleText, setSampleText] = useState('');
+  const [helpVisible, setHelpVisible] = useState(false);
   const [testResult, setTestResult] = useState<{
     matches: boolean;
     matchedSegment: string;
@@ -113,6 +115,10 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
 
   function handleBack() {
     router.back();
+  }
+
+  function toggleHelp() {
+    setHelpVisible(!helpVisible);
   }
 
   function openAppPicker() {
@@ -300,6 +306,23 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
             </View>
           ) : null}
         </View>
+
+        <Pressable
+          onPress={toggleHelp}
+          className="mt-6 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
+        >
+          <Text className="text-sm text-surface-dark dark:text-white">Pattern help</Text>
+          {helpVisible ? (
+            <CaretUp size={16} weight="regular" color={p.muted} />
+          ) : (
+            <CaretDown size={16} weight="regular" color={p.muted} />
+          )}
+        </Pressable>
+        {helpVisible ? (
+          <View className="mt-3">
+            <RegexHelp />
+          </View>
+        ) : null}
 
         <View className="h-8" />
       </ScrollView>

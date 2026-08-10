@@ -135,6 +135,10 @@ export default function SettingsScreen() {
     setImportJson('');
   }
 
+  function handlePatternHelpTap() {
+    router.push('/regex-help');
+  }
+
   function handleOpenRepo() {
     Linking.openURL(REPO_URL);
   }
@@ -256,6 +260,19 @@ export default function SettingsScreen() {
                 </Pressable>
               }
             />
+          </ListSection>
+
+          <ListSection>
+            <Pressable
+              onPress={handlePatternHelpTap}
+              className="active:bg-surface-tertiary dark:active:bg-surface-dark-tertiary"
+            >
+              <ListRow
+                label="Pattern help"
+                description="Regex syntax and how rule matching works"
+                action={<CaretRight size={16} weight="regular" color={p.muted} />}
+              />
+            </Pressable>
           </ListSection>
 
           <ListSection>
