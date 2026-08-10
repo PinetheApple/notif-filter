@@ -6,10 +6,13 @@ set -euo pipefail
 EXIT_DEBUG_KEY=1
 EXIT_CANNOT_CHECK=2
 RAW_EXCERPT_LINES=40
+EXPECTED_SIGNER_COUNT=1
 
-# apksigner labels the first signer either bare or with an SDK-range prefix depending on
-# the build-tools version; both must parse, and neither may match signer #2 or SHA-1.
-SIGNER_1_SHA256_LINE='^Signer( \(minSdkVersion=[0-9]+(, maxSdkVersion=[0-9]+)?\))? #1 certificate SHA-256 digest:[[:space:]]+[0-9A-Fa-f:]+$'
+# apksigner labels certificates differently across build-tools versions: numbered,
+# SDK-range prefixed, or scheme labelled ("V2 Signer:") when there is no JAR signature.
+SIGNER_LABEL='(Signer( \(minSdkVersion=[0-9]+(, maxSdkVersion=[0-9]+)?\))? #[0-9]+|V[0-9]+(\.[0-9]+)? Signer:)'
+SIGNER_SHA256_LINE="^${SIGNER_LABEL} certificate SHA-256 digest:[[:space:]]+[0-9A-Fa-f:]+\$"
+SIGNER_COUNT_LINE='^Number of signers:[[:space:]]+[0-9]+$'
 COLONED_SHA256='[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){31}'
 NORMALISED_SHA256='^[0-9a-f]{64}$'
 
@@ -54,21 +57,48 @@ if ! verify_output="$("$APKSIGNER" verify --verbose "$APK" 2>&1)"; then
 fi
 printf '%s\n' "$verify_output"
 
+# The scheme-labelled form carries no signer number, so the digest line is only
+# unambiguous once the APK is known to have exactly one signer.
+if ! signer_count="$(
+  printf '%s\n' "$verify_output" |
+    grep -E -m 1 "$SIGNER_COUNT_LINE" |
+    awk '{ print $NF }'
+)"; then
+  signer_count=""
+fi
+
+if [ "$signer_count" != "$EXPECTED_SIGNER_COUNT" ]; then
+  fail_cannot_check \
+    "expected $EXPECTED_SIGNER_COUNT signer, apksigner reported '${signer_count:-none}'" \
+    "$verify_output"
+fi
+
 if ! certs_output="$("$APKSIGNER" verify --print-certs "$APK" 2>&1)"; then
   fail_cannot_check "apksigner could not print certificates for $APK" "$certs_output"
 fi
 
-if ! apk_digest="$(
+if ! apk_digests="$(
   printf '%s\n' "$certs_output" |
-    grep -E -m 1 "$SIGNER_1_SHA256_LINE" |
+    grep -E "$SIGNER_SHA256_LINE" |
     awk '{ print $NF }' |
-    normalise_digest
+    normalise_digest |
+    sort -u
 )"; then
-  apk_digest=""
+  apk_digests=""
 fi
 
+if [ -z "$apk_digests" ]; then
+  fail_cannot_check "no signer SHA-256 digest in apksigner --print-certs output" "$certs_output"
+fi
+
+# One signer can still print several digest lines (one per scheme); they must agree.
+if [ "$(printf '%s\n' "$apk_digests" | wc -l)" -ne 1 ]; then
+  fail_cannot_check "apksigner printed more than one distinct signer certificate" "$certs_output"
+fi
+
+apk_digest="$apk_digests"
 if ! [[ "$apk_digest" =~ $NORMALISED_SHA256 ]]; then
-  fail_cannot_check "no signer #1 SHA-256 digest in apksigner --print-certs output" "$certs_output"
+  fail_cannot_check "signer SHA-256 digest is not a 32-byte hex value" "$certs_output"
 fi
 
 if ! keytool_output="$(
