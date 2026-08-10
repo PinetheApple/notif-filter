@@ -39,17 +39,116 @@ class RuleEngineTest {
         return RuleEngine.evaluate(notification, compiled, defaultPolicy)
     }
 
-    // ── Deny priority ────────────────────────────────────────────────────────
+    // ── Order decides precedence ─────────────────────────────────────────────
 
     @Test
-    fun `deny wins over allow when both match`() {
+    fun `allow above deny wins when both match`() {
         val rules = listOf(
             rule(id = "allow", action = "allow", pattern = "hello"),
             rule(id = "deny", action = "deny", pattern = "hello")
         )
         val result = eval(notif(title = "hello"), rules)
+        assertEquals(Decision.ALLOW, result.decision)
+        assertEquals("allow", result.ruleId)
+    }
+
+    @Test
+    fun `deny above allow wins when both match`() {
+        val rules = listOf(
+            rule(id = "deny", action = "deny", pattern = "hello"),
+            rule(id = "allow", action = "allow", pattern = "hello")
+        )
+        val result = eval(notif(title = "hello"), rules)
         assertEquals(Decision.BLOCK, result.decision)
         assertEquals("deny", result.ruleId)
+    }
+
+    @Test
+    fun `narrow allow above broad deny for the same package`() {
+        val rules = listOf(
+            rule(
+                id = "allow-credit",
+                action = "allow",
+                pattern = "credit|sent",
+                scopeKind = "packages",
+                scopePackages = listOf("com.messaging")
+            ),
+            rule(
+                id = "deny-all",
+                action = "deny",
+                pattern = ".*",
+                scopeKind = "packages",
+                scopePackages = listOf("com.messaging")
+            )
+        )
+        val allowed = eval(notif(title = "credit of 500", packageName = "com.messaging"), rules)
+        assertEquals(Decision.ALLOW, allowed.decision)
+        assertEquals("allow-credit", allowed.ruleId)
+
+        val blocked = eval(notif(title = "anything else", packageName = "com.messaging"), rules)
+        assertEquals(Decision.BLOCK, blocked.decision)
+        assertEquals("deny-all", blocked.ruleId)
+    }
+
+    @Test
+    fun `first allow match wins among multiple allow rules`() {
+        val rules = listOf(
+            rule(id = "a1", action = "allow", pattern = "sale"),
+            rule(id = "a2", action = "allow", pattern = "promo")
+        )
+        val result = eval(notif(title = "sale and promo"), rules, defaultPolicy = "block")
+        assertEquals(Decision.ALLOW, result.decision)
+        assertEquals("a1", result.ruleId)
+    }
+
+    @Test
+    fun `disabled rule does not consume precedence`() {
+        val rules = listOf(
+            rule(id = "allow-off", action = "allow", pattern = "hello", enabled = false),
+            rule(id = "deny", action = "deny", pattern = "hello")
+        )
+        val result = eval(notif(title = "hello"), rules)
+        assertEquals(Decision.BLOCK, result.decision)
+        assertEquals("deny", result.ruleId)
+    }
+
+    @Test
+    fun `out-of-scope rule does not consume precedence`() {
+        val rules = listOf(
+            rule(
+                id = "allow-other",
+                action = "allow",
+                pattern = "hello",
+                scopeKind = "packages",
+                scopePackages = listOf("com.other")
+            ),
+            rule(id = "deny", action = "deny", pattern = "hello")
+        )
+        val result = eval(notif(title = "hello", packageName = "com.example"), rules)
+        assertEquals(Decision.BLOCK, result.decision)
+        assertEquals("deny", result.ruleId)
+    }
+
+    @Test
+    fun `no match falls through to allow default`() {
+        val rules = listOf(
+            rule(id = "allow", action = "allow", pattern = "friend"),
+            rule(id = "deny", action = "deny", pattern = "spam")
+        )
+        val result = eval(notif(title = "hello"), rules, defaultPolicy = "allow")
+        assertEquals(Decision.ALLOW, result.decision)
+        assertNull(result.ruleId)
+    }
+
+    @Test
+    fun `no match falls through to block default`() {
+        val rules = listOf(
+            rule(id = "allow", action = "allow", pattern = "friend"),
+            rule(id = "deny", action = "deny", pattern = "spam")
+        )
+        val result = eval(notif(title = "hello"), rules, defaultPolicy = "block")
+        assertEquals(Decision.BLOCK, result.decision)
+        assertNull(result.ruleId)
     }
 
     @Test

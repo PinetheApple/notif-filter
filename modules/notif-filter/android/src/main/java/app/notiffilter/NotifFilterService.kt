@@ -151,7 +151,7 @@ class NotifFilterService : NotificationListenerService() {
     }
 
     /**
-     * Evaluate [sbn], cancel it if a deny rule matches, and record it in history.
+     * Evaluate [sbn], cancel it when evaluation blocks it, and record it in history.
      *
      * @param recovered marks a backfilled notification the user has already seen.
      * @return true when a history row was written.

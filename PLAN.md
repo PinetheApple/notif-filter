@@ -86,8 +86,9 @@ main-thread on API 24+; matching is fast enough, otherwise offload to a single h
    `EXTRA_SUB_TEXT`, `EXTRA_INFO_TEXT`, `EXTRA_SUMMARY_TEXT`, `EXTRA_TEXT_LINES`,
    `EXTRA_BIG_TEXT`. Per-field or concatenated per `rule.field`. Cap input at ~4 KB
    (regex DoS guard).
-3. **Deny wins.** Any matching deny rule → cancel.
-4. Else if `defaultPolicy == 'block'`: require a matching allow rule; none → cancel.
+3. **First match wins, in list order.** The first candidate rule whose pattern matches
+   decides: `deny` → cancel, `allow` → let through. Reordering rules changes the outcome.
+4. Nothing matched and `defaultPolicy == 'block'` → cancel.
 5. Cancel path: `cancelNotification(sbn.key)` + insert into blocked log (app, title
    preview, matched rule id+pattern, timestamp, postTime).
 
