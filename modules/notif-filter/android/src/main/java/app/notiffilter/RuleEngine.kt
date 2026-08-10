@@ -89,6 +89,8 @@ object RuleEngine {
     /** Regex input is capped at this length to guard against catastrophic backtracking. */
     const val MAX_CONTENT_LENGTH = 4096
 
+    const val ACTION_ALLOW = "allow"
+
     /**
      * True when [notification] must leave the pipeline untouched: no rule evaluation,
      * no cancel, and no history entry.
@@ -109,10 +111,10 @@ object RuleEngine {
      * Callers must check [isExempt] first — exempted notifications never reach here.
      *
      * Order:
-     * 1. Filter rules by [Rule.enabled] and scope match.
-     * 2. Check deny rules — first match wins (deny takes priority).
-     * 3. Check allow rules.
-     * 4. Apply [defaultPolicy]: in block mode, no allow match = BLOCK; otherwise ALLOW.
+     * 1. Skip rules that are disabled or out of scope — they never take precedence.
+     * 2. First match wins in list order: the matching rule's action decides the outcome,
+     *    allow or deny. List position is the precedence the reorder UI exposes.
+     * 3. Apply [defaultPolicy] when nothing matches: block mode = BLOCK, otherwise ALLOW.
      */
     fun evaluate(
         notification: NotificationContent,
@@ -124,21 +126,10 @@ object RuleEngine {
             r.enabled && (r.scopeKind == "all" || r.scopePackages.contains(notification.packageName))
         }
 
-        // Deny wins — check first
         for (compiled in candidates) {
-            if (compiled.rule.action != "deny") continue
-            val matched = tryMatch(compiled, notification)
-            if (matched != null) {
-                return EvaluationResult(Decision.BLOCK, compiled.rule.id, matched)
-            }
-        }
-
-        for (compiled in candidates) {
-            if (compiled.rule.action != "allow") continue
-            val matched = tryMatch(compiled, notification)
-            if (matched != null) {
-                return EvaluationResult(Decision.ALLOW, compiled.rule.id, matched)
-            }
+            val matched = tryMatch(compiled, notification) ?: continue
+            val decision = if (compiled.rule.action == ACTION_ALLOW) Decision.ALLOW else Decision.BLOCK
+            return EvaluationResult(decision, compiled.rule.id, matched)
         }
 
         return if (defaultPolicy == "block") {
