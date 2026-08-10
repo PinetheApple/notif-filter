@@ -40,6 +40,20 @@ jobs:
 
       - run: pnpm run lint
 
+  release-scripts:
+    name: Release script tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # keytool only; the tests stub apksigner, so no Android SDK is needed.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - run: ./scripts/verify-apk-signature.test.sh
+
   android:
     name: Android unit tests
     runs-on: ubuntu-latest
