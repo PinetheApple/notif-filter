@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/PinetheApple/notif-filter/compare/v0.0.4...v0.0.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* make the APK signature check parse and explain itself ([#60](https://github.com/PinetheApple/notif-filter/issues/60)) ([959972b](https://github.com/PinetheApple/notif-filter/commit/959972b8a18a215734b983840e9fb96fd6521de1))
+
 ## [0.0.4](https://github.com/PinetheApple/notif-filter/compare/v0.0.3...v0.0.4) (2026-08-08)
 
 
