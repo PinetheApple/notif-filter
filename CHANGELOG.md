@@ -5,19 +5,16 @@
 
 ### Features
 
-* publish a signed APK with each release ([e2f3e60](https://github.com/PinetheApple/notif-filter/commit/e2f3e605c1905c5e386ff8d0aef024ef92f587e7))
 * publish a signed APK with each release ([aa8d114](https://github.com/PinetheApple/notif-filter/commit/aa8d114dd7480fc4b05888e8bbdb4139ec93d51c)), closes [#40](https://github.com/PinetheApple/notif-filter/issues/40)
 
 
 ### Bug Fixes
 
-* share one RuleStore between the JS bridge and the listener service ([c4491a3](https://github.com/PinetheApple/notif-filter/commit/c4491a36bb5ccceb9040a6758d5e859b1750d00d))
 * share one RuleStore between the JS bridge and the listener service ([b0eb633](https://github.com/PinetheApple/notif-filter/commit/b0eb633912e7cfb0cbf92934a65e001853b6bd99)), closes [#46](https://github.com/PinetheApple/notif-filter/issues/46)
 
 
 ### Performance
 
-* shrink the release APK from 110.6 MB to 23.8 MB ([79bfccd](https://github.com/PinetheApple/notif-filter/commit/79bfccde5f5a47e8373947f4da55e36b23ba94dc))
 * shrink the release APK from 110.6 MB to 23.8 MB ([a435a03](https://github.com/PinetheApple/notif-filter/commit/a435a0332b305e26034cafb685b7336a504d6129)), closes [#48](https://github.com/PinetheApple/notif-filter/issues/48)
 
 ## [0.0.3](https://github.com/PinetheApple/notif-filter/compare/v0.0.2...v0.0.3) (2026-08-08)
