@@ -10,7 +10,11 @@ reach the user. All matching is native (Java regex in Kotlin), not JS.
 
 - Read the current milestone's GitHub issue for the full spec + acceptance criteria
 - Read the relevant sections of PLAN.md
-- `pnpm exec tsc --noEmit` must pass before committing
+- All three JS gates must pass before committing — CI runs each of them and typecheck alone
+  will not catch a formatting failure:
+  - `pnpm run typecheck`
+  - `pnpm run format:check` (run `pnpm run format` to fix)
+  - `pnpm run lint`
 - This app requires a dev build (`pnpm expo run:android`), not Expo Go
 
 ## Code style
