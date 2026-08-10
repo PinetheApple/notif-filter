@@ -1,5 +1,14 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TextInput, Switch, Pressable, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Switch,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { CaretDown, CaretLeft, CaretRight, CaretUp } from 'phosphor-react-native';
 
@@ -55,6 +64,7 @@ function Segment<T extends string>({
 export function RuleForm({ initialRule, draft, scheme }: Props) {
   const router = useRouter();
   const p = palette(scheme);
+  const insets = useSafeAreaInsets();
 
   const addRule = useRulesStore((s) => s.addRule);
   const updateRule = useRulesStore((s) => s.updateRule);
@@ -194,138 +204,150 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1 px-4" keyboardShouldPersistTaps="handled">
-        <View className="mt-4 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            Label (optional)
-          </Text>
-          <TextInput
-            value={label}
-            onChangeText={setLabel}
-            placeholder="e.g. Block promo emails"
-            placeholderTextColor={p.muted}
-            className="rounded-lg bg-surface-secondary px-3 py-2.5 text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
-          />
-        </View>
-
-        <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">App scope</Text>
-          <Segment
-            options={['all', 'packages'] as const}
-            value={scopeKind}
-            onChange={setScopeKind}
-          />
-          {scopeKind === 'packages' ? (
-            <Pressable
-              onPress={openAppPicker}
-              className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
-            >
-              <Text className="text-sm text-surface-dark dark:text-white">
-                {scopePackages.length > 0
-                  ? `${scopePackages.length} app${scopePackages.length === 1 ? '' : 's'} selected`
-                  : 'Choose apps'}
-              </Text>
-              <CaretRight size={16} weight="regular" color={p.muted} />
-            </Pressable>
-          ) : null}
-        </View>
-
-        <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">Match field</Text>
-          <Segment options={['title', 'text', 'any'] as const} value={field} onChange={setField} />
-        </View>
-
-        <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            Pattern (Java regex)
-          </Text>
-          <TextInput
-            value={pattern}
-            onChangeText={handlePatternChange}
-            placeholder="e.g. promo|sale|discount"
-            placeholderTextColor={p.muted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            className="rounded-lg bg-surface-secondary px-3 py-2.5 font-mono text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
-          />
-          <View className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2 dark:bg-surface-dark-secondary">
-            <Text className="text-sm text-surface-dark dark:text-white">Case insensitive</Text>
-            <Switch
-              value={caseInsensitive}
-              onValueChange={handleCaseInsensitiveChange}
-              trackColor={{
-                false: COLORS.switch.trackOff,
-                true: COLORS.switch.trackOn,
-              }}
-              thumbColor={COLORS.switch.thumb}
+      {/* targetSdk 36 forces edge-to-edge, so adjustResize no longer resizes the window.
+          The offset is the status bar the enclosing SafeAreaView adds above this view. */}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={insets.top}
+      >
+        <ScrollView className="flex-1 px-4" keyboardShouldPersistTaps="handled">
+          <View className="mt-4 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">
+              Label (optional)
+            </Text>
+            <TextInput
+              value={label}
+              onChangeText={setLabel}
+              placeholder="e.g. Block promo emails"
+              placeholderTextColor={p.muted}
+              className="rounded-lg bg-surface-secondary px-3 py-2.5 text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
             />
           </View>
-        </View>
 
-        <View className="mt-5 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">Action</Text>
-          <Segment options={['deny', 'allow'] as const} value={action} onChange={setAction} />
-        </View>
+          <View className="mt-5 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">App scope</Text>
+            <Segment
+              options={['all', 'packages'] as const}
+              value={scopeKind}
+              onChange={setScopeKind}
+            />
+            {scopeKind === 'packages' ? (
+              <Pressable
+                onPress={openAppPicker}
+                className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
+              >
+                <Text className="text-sm text-surface-dark dark:text-white">
+                  {scopePackages.length > 0
+                    ? `${scopePackages.length} app${scopePackages.length === 1 ? '' : 's'} selected`
+                    : 'Choose apps'}
+                </Text>
+                <CaretRight size={16} weight="regular" color={p.muted} />
+              </Pressable>
+            ) : null}
+          </View>
 
-        <View className="mt-6 gap-1">
-          <Text className="text-xs font-medium text-muted dark:text-muted-dark">
-            Test your pattern
-          </Text>
-          <TextInput
-            value={sampleText}
-            onChangeText={handleSampleChange}
-            placeholder="Paste a sample notification title to test"
-            placeholderTextColor={p.muted}
-            className="rounded-lg bg-surface-secondary px-3 py-2.5 text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
-          />
-          {testResult ? (
-            <View
-              className={`mt-1 flex-row items-center gap-2 rounded-lg px-3 py-2 ${
-                testResult.matches
-                  ? 'bg-green-100 dark:bg-green-900'
-                  : 'bg-surface-secondary dark:bg-surface-dark-secondary'
-              }`}
-            >
-              <Text
-                className={`text-xs font-medium ${
+          <View className="mt-5 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">Match field</Text>
+            <Segment
+              options={['title', 'text', 'any'] as const}
+              value={field}
+              onChange={setField}
+            />
+          </View>
+
+          <View className="mt-5 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">
+              Pattern (Java regex)
+            </Text>
+            <TextInput
+              value={pattern}
+              onChangeText={handlePatternChange}
+              placeholder="e.g. promo|sale|discount"
+              placeholderTextColor={p.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              className="rounded-lg bg-surface-secondary px-3 py-2.5 font-mono text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
+            />
+            <View className="mt-2 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2 dark:bg-surface-dark-secondary">
+              <Text className="text-sm text-surface-dark dark:text-white">Case insensitive</Text>
+              <Switch
+                value={caseInsensitive}
+                onValueChange={handleCaseInsensitiveChange}
+                trackColor={{
+                  false: COLORS.switch.trackOff,
+                  true: COLORS.switch.trackOn,
+                }}
+                thumbColor={COLORS.switch.thumb}
+              />
+            </View>
+          </View>
+
+          <View className="mt-5 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">Action</Text>
+            <Segment options={['deny', 'allow'] as const} value={action} onChange={setAction} />
+          </View>
+
+          <View className="mt-6 gap-1">
+            <Text className="text-xs font-medium text-muted dark:text-muted-dark">
+              Test your pattern
+            </Text>
+            <TextInput
+              value={sampleText}
+              onChangeText={handleSampleChange}
+              placeholder="Paste a sample notification title to test"
+              placeholderTextColor={p.muted}
+              className="rounded-lg bg-surface-secondary px-3 py-2.5 text-sm text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
+            />
+            {testResult ? (
+              <View
+                className={`mt-1 flex-row items-center gap-2 rounded-lg px-3 py-2 ${
                   testResult.matches
-                    ? 'text-green-800 dark:text-green-200'
-                    : 'text-muted dark:text-muted-dark'
+                    ? 'bg-green-100 dark:bg-green-900'
+                    : 'bg-surface-secondary dark:bg-surface-dark-secondary'
                 }`}
               >
-                {testResult.matches ? 'Match' : 'No match'}
-              </Text>
-              {testResult.matches && testResult.matchedSegment ? (
                 <Text
-                  className="flex-1 font-mono text-xs text-green-700 dark:text-green-300"
-                  numberOfLines={1}
+                  className={`text-xs font-medium ${
+                    testResult.matches
+                      ? 'text-green-800 dark:text-green-200'
+                      : 'text-muted dark:text-muted-dark'
+                  }`}
                 >
-                  {testResult.matchedSegment}
+                  {testResult.matches ? 'Match' : 'No match'}
                 </Text>
-              ) : null}
+                {testResult.matches && testResult.matchedSegment ? (
+                  <Text
+                    className="flex-1 font-mono text-xs text-green-700 dark:text-green-300"
+                    numberOfLines={1}
+                  >
+                    {testResult.matchedSegment}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+
+          <Pressable
+            onPress={toggleHelp}
+            className="mt-6 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
+          >
+            <Text className="text-sm text-surface-dark dark:text-white">Pattern help</Text>
+            {helpVisible ? (
+              <CaretUp size={16} weight="regular" color={p.muted} />
+            ) : (
+              <CaretDown size={16} weight="regular" color={p.muted} />
+            )}
+          </Pressable>
+          {helpVisible ? (
+            <View className="mt-3">
+              <RegexHelp />
             </View>
           ) : null}
-        </View>
 
-        <Pressable
-          onPress={toggleHelp}
-          className="mt-6 flex-row items-center justify-between rounded-lg bg-surface-secondary px-3 py-2.5 dark:bg-surface-dark-secondary"
-        >
-          <Text className="text-sm text-surface-dark dark:text-white">Pattern help</Text>
-          {helpVisible ? (
-            <CaretUp size={16} weight="regular" color={p.muted} />
-          ) : (
-            <CaretDown size={16} weight="regular" color={p.muted} />
-          )}
-        </Pressable>
-        {helpVisible ? (
-          <View className="mt-3">
-            <RegexHelp />
-          </View>
-        ) : null}
-
-        <View className="h-8" />
-      </ScrollView>
+          <View className="h-8" />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
