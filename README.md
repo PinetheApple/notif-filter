@@ -107,6 +107,24 @@ and written into `android/app/build.gradle` at prebuild time:
 When any of them is unset the release variant falls back to the template debug key, so
 `pnpm expo run:android` and local release builds work without secrets.
 
+### Signing a release build locally
+
+Copy `.env.example` to `.env` and fill in the three values. The Expo CLI loads `.env` and passes
+it through to the Gradle process, which is where `app.plugin.js` reads the variables via
+`System.getenv`, so `pnpm expo run:android --variant release` picks them up with nothing exported
+by hand. `.env` is gitignored.
+
+Confirm which key was actually used rather than assuming, because an unset variable fails silently
+by producing a debug-signed APK instead of an error:
+
+```bash
+apksigner verify --print-certs android/app/build/outputs/apk/release/app-release.apk
+```
+
+Installing a locally signed build over a debug-signed one fails with
+`INSTALL_FAILED_UPDATE_INCOMPATIBLE`. That is Android refusing a signature change, not a build
+problem — uninstalling first clears it, at the cost of the rules and history on that device.
+
 The keystore is PKCS12, so the store and key passwords are the same value and there is no
 separate key-password secret. To create one and load it into the repository:
 
