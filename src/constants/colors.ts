@@ -23,7 +23,17 @@ export const COLORS = {
     DEFAULT: '#b45309',
     dark: '#f59e0b',
   },
-  destructive: {
+  success: {
+    light: '#15803d',
+    dark: '#86efac',
+  },
+  warning: {
+    light: '#92400e',
+    dark: '#fde68a',
+    mutedLight: '#b45309',
+    mutedDark: '#fcd34d',
+  },
+  danger: {
     light: '#dc2626',
     dark: '#f87171',
   },
@@ -42,6 +52,8 @@ export function palette(scheme: ColorScheme) {
     muted: scheme === 'dark' ? COLORS.muted.dark : COLORS.muted.light,
     accent: scheme === 'dark' ? COLORS.accent.dark : COLORS.accent.DEFAULT,
     accentText: scheme === 'dark' ? COLORS.surface.dark : COLORS.surface.DEFAULT,
-    destructive: scheme === 'dark' ? COLORS.destructive.dark : COLORS.destructive.light,
+    success: scheme === 'dark' ? COLORS.success.dark : COLORS.success.light,
+    warning: scheme === 'dark' ? COLORS.warning.dark : COLORS.warning.light,
+    danger: scheme === 'dark' ? COLORS.danger.dark : COLORS.danger.light,
   };
 }

@@ -32,6 +32,40 @@ const config: Config = {
             dark: '#09090b',
           },
         },
+        success: {
+          // green-700 over the green-100 surface is 4.57:1; green-600 fails at 3.4:1
+          DEFAULT: '#15803d',
+          dark: '#86efac',
+          surface: {
+            DEFAULT: '#dcfce7',
+            dark: '#14532d',
+          },
+        },
+        warning: {
+          DEFAULT: '#92400e',
+          dark: '#fde68a',
+          // Secondary tone for banner body text: 4.51:1 on the light surface,
+          // 6.29:1 on the dark one.
+          muted: {
+            DEFAULT: '#b45309',
+            dark: '#fcd34d',
+          },
+          surface: {
+            DEFAULT: '#fef3c7',
+            dark: '#78350f',
+          },
+        },
+        danger: {
+          DEFAULT: '#dc2626',
+          dark: '#f87171',
+          surface: {
+            DEFAULT: '#fef2f2',
+            dark: '#450a0a',
+          },
+        },
+      },
+      fontSize: {
+        '2xs': '11px',
       },
       spacing: {
         half: '2',

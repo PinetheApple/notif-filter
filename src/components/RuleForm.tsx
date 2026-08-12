@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { CaretDown, CaretLeft, CaretRight, CaretUp } from 'phosphor-react-native';
 
 import { RegexHelp } from '@/components/RegexHelp';
+import { SegmentedControl } from '@/components/ui';
 import { useRulesStore, type Rule, type RuleAction } from '@/stores/rules';
 import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
 import { palette, COLORS } from '@/constants/colors';
@@ -24,42 +25,6 @@ type Props = {
   draft?: Partial<Rule>;
   scheme: 'light' | 'dark';
 };
-
-function Segment<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <View className="flex-row overflow-hidden rounded-lg">
-      {options.map((opt) => (
-        <Pressable
-          key={opt}
-          onPress={() => onChange(opt)}
-          className={`flex-1 px-3 py-2 ${
-            opt === value
-              ? 'bg-accent dark:bg-accent-dark'
-              : 'bg-surface-secondary dark:bg-surface-dark-secondary'
-          }`}
-        >
-          <Text
-            className={`text-center text-sm font-medium ${
-              opt === value
-                ? 'text-accent-text dark:text-accent-text-dark'
-                : 'text-surface-dark dark:text-white'
-            }`}
-          >
-            {opt}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 export function RuleForm({ initialRule, draft, scheme }: Props) {
   const router = useRouter();
@@ -227,7 +192,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
 
           <View className="mt-5 gap-1">
             <Text className="text-xs font-medium text-muted dark:text-muted-dark">App scope</Text>
-            <Segment
+            <SegmentedControl
               options={['all', 'packages'] as const}
               value={scopeKind}
               onChange={setScopeKind}
@@ -249,7 +214,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
 
           <View className="mt-5 gap-1">
             <Text className="text-xs font-medium text-muted dark:text-muted-dark">Match field</Text>
-            <Segment
+            <SegmentedControl
               options={['title', 'text', 'any'] as const}
               value={field}
               onChange={setField}
@@ -285,7 +250,11 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
 
           <View className="mt-5 gap-1">
             <Text className="text-xs font-medium text-muted dark:text-muted-dark">Action</Text>
-            <Segment options={['deny', 'allow'] as const} value={action} onChange={setAction} />
+            <SegmentedControl
+              options={['deny', 'allow'] as const}
+              value={action}
+              onChange={setAction}
+            />
           </View>
 
           <View className="mt-6 gap-1">
@@ -303,14 +272,14 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
               <View
                 className={`mt-1 flex-row items-center gap-2 rounded-lg px-3 py-2 ${
                   testResult.matches
-                    ? 'bg-green-100 dark:bg-green-900'
+                    ? 'bg-success-surface dark:bg-success-surface-dark'
                     : 'bg-surface-secondary dark:bg-surface-dark-secondary'
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
                     testResult.matches
-                      ? 'text-green-800 dark:text-green-200'
+                      ? 'text-success dark:text-success-dark'
                       : 'text-muted dark:text-muted-dark'
                   }`}
                 >
@@ -318,7 +287,7 @@ export function RuleForm({ initialRule, draft, scheme }: Props) {
                 </Text>
                 {testResult.matches && testResult.matchedSegment ? (
                   <Text
-                    className="flex-1 font-mono text-xs text-green-700 dark:text-green-300"
+                    className="flex-1 font-mono text-xs text-success dark:text-success-dark"
                     numberOfLines={1}
                   >
                     {testResult.matchedSegment}

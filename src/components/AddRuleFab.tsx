@@ -11,7 +11,7 @@ export function AddRuleFab({ onPress, scheme }: { onPress: () => void; scheme: '
   return (
     <Pressable
       onPress={onPress}
-      className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-xl bg-accent shadow-lg active:scale-95 dark:bg-accent-dark"
+      className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-lg bg-accent shadow-lg active:scale-95 dark:bg-accent-dark"
     >
       <Plus size={FAB_ICON_SIZE} weight="regular" color={p.accentText} />
     </Pressable>

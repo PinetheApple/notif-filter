@@ -93,9 +93,9 @@ export function RuleRow({
       <Pressable
         onPress={handleDelete}
         accessibilityLabel="Delete rule"
-        className="mr-2 h-12 w-12 items-center justify-center rounded-lg active:bg-red-50 dark:active:bg-red-950"
+        className="mr-2 h-12 w-12 items-center justify-center rounded-lg active:bg-danger-surface dark:active:bg-danger-surface-dark"
       >
-        <Trash size={DELETE_ICON_SIZE} weight="regular" color={p.destructive} />
+        <Trash size={DELETE_ICON_SIZE} weight="regular" color={p.danger} />
       </Pressable>
     </View>
   );

@@ -1,11 +1,21 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Switch, Pressable, TextInput, Alert, ScrollView, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  Switch,
+  Pressable,
+  TextInput,
+  Alert,
+  ScrollView,
+  Linking,
+  Share,
+} from 'react-native';
 import Constants from 'expo-constants';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ArrowSquareOut, CaretRight, Export, FileArrowDown } from 'phosphor-react-native';
 import { useColorScheme } from 'nativewind';
 
-import { ListRow, ListSection, Separator } from '@/components/ui';
+import { ListRow, ListSection, SegmentedControl, Separator } from '@/components/ui';
 import { useSettingsStore } from '@/stores/settings';
 import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
 import { useRulesStore, type Rule } from '@/stores/rules';
@@ -14,46 +24,23 @@ import { palette, COLORS } from '@/constants/colors';
 import * as NotifFilter from '../../../modules/notif-filter/src/index';
 
 const REPO_URL = 'https://github.com/PinetheApple/notif-filter';
+const THEME_AUTO_OPTION = 'system';
+const THEME_OPTIONS = [THEME_AUTO_OPTION, 'light', 'dark'] as const;
+const POLICY_OPTIONS = ['allow', 'block'] as const;
 const APP_VERSION = Constants.expoConfig?.version ?? 'unknown';
+
+type ThemeOption = (typeof THEME_OPTIONS)[number];
+
+function capitalize(option: string): string {
+  return option.charAt(0).toUpperCase() + option.slice(1);
+}
+
+function formatThemeLabel(option: ThemeOption): string {
+  return option === THEME_AUTO_OPTION ? 'Auto' : capitalize(option);
+}
 
 function isSameSelection(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((pkg, i) => pkg === b[i]);
-}
-
-function SegmentedPicker<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly T[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <View className="flex-row overflow-hidden rounded-lg">
-      {options.map((opt) => (
-        <Pressable
-          key={opt}
-          onPress={() => onChange(opt)}
-          className={`px-3 py-1.5 ${
-            opt === value
-              ? 'bg-accent dark:bg-accent-dark'
-              : 'bg-surface-secondary dark:bg-surface-dark-secondary'
-          }`}
-        >
-          <Text
-            className={`text-xs font-medium ${
-              opt === value
-                ? 'text-accent-text dark:text-accent-text-dark'
-                : 'text-surface-dark dark:text-white'
-            }`}
-          >
-            {opt === 'system' ? 'Auto' : opt.charAt(0).toUpperCase() + opt.slice(1)}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
 }
 
 export default function SettingsScreen() {
@@ -126,8 +113,15 @@ export default function SettingsScreen() {
 
   function handleExport() {
     const json = JSON.stringify(rules, null, 2);
-    const { Share } = require('react-native');
     Share.share({ message: json, title: 'NotifFilter rules export' });
+  }
+
+  function handleImportReplace() {
+    handleImportExecute('replace');
+  }
+
+  function handleImportMerge() {
+    handleImportExecute('merge');
   }
 
   function handleImportTap() {
@@ -174,10 +168,12 @@ export default function SettingsScreen() {
                   : 'Block everything unless a rule allows it'
               }
               action={
-                <SegmentedPicker
-                  options={['allow', 'block'] as const}
+                <SegmentedControl
+                  options={POLICY_OPTIONS}
                   value={defaultPolicy}
                   onChange={setDefaultPolicy}
+                  formatLabel={capitalize}
+                  size="sm"
                 />
               }
             />
@@ -236,10 +232,12 @@ export default function SettingsScreen() {
               label="Theme"
               description={colorScheme === 'dark' ? 'Dark mode' : 'Light mode'}
               action={
-                <SegmentedPicker
-                  options={['system', 'light', 'dark'] as const}
-                  value={(colorScheme as 'system' | 'light' | 'dark') ?? 'system'}
+                <SegmentedControl
+                  options={THEME_OPTIONS}
+                  value={(colorScheme as ThemeOption) ?? THEME_AUTO_OPTION}
                   onChange={handleThemeChange}
+                  formatLabel={formatThemeLabel}
+                  size="sm"
                 />
               }
             />
@@ -309,7 +307,7 @@ export default function SettingsScreen() {
                 />
                 <View className="flex-row gap-2">
                   <Pressable
-                    onPress={() => handleImportExecute('replace')}
+                    onPress={handleImportReplace}
                     className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
                   >
                     <Text className="text-center text-xs font-medium text-accent-text dark:text-accent-text-dark">
@@ -317,7 +315,7 @@ export default function SettingsScreen() {
                     </Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => handleImportExecute('merge')}
+                    onPress={handleImportMerge}
                     className="flex-1 rounded bg-surface-secondary px-3 py-1.5 active:bg-surface-tertiary dark:bg-surface-dark-secondary dark:active:bg-surface-dark-tertiary"
                   >
                     <Text className="text-center text-xs font-medium text-surface-dark dark:text-white">
