@@ -4,7 +4,6 @@ import {
   Text,
   Pressable,
   FlatList,
-  Alert,
   AppState,
   type AppStateStatus,
   type ListRenderItemInfo,
@@ -13,7 +12,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Trash } from 'phosphor-react-native';
 import { useColorScheme } from 'nativewind';
 
-import { EmptyState, LoadingState } from '@/components/ui';
+import { Dialog, EmptyState, LoadingState } from '@/components/ui';
 import { HistoryItem } from '@/components/HistoryItem';
 import { useHistoryStore } from '@/stores/history';
 import { usePermissionStore } from '@/stores/permissions';
@@ -47,6 +46,7 @@ export default function HistoryScreen() {
   const requestPostNotifications = usePermissionStore((s) => s.requestPostNotifications);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [clearVisible, setClearVisible] = useState(false);
   // Expansion lives here, not in the row: FlatList unmounts rows that scroll out of
   // the window, so row-local state would be lost on the way back.
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
@@ -106,11 +106,12 @@ export default function HistoryScreen() {
   }, [clearAll]);
 
   const handleClearAll = () => {
-    Alert.alert('Clear history', 'Delete all entries? This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: confirmClearAll },
-    ]);
+    setClearVisible(true);
   };
+
+  const handleClearDismiss = useCallback(() => {
+    setClearVisible(false);
+  }, []);
 
   async function handleRestore(id: string) {
     if (await requestPostNotifications()) {
@@ -198,6 +199,16 @@ export default function HistoryScreen() {
         refreshing={refreshing}
         onRefresh={handleRefresh}
         renderItem={renderEntry}
+      />
+
+      <Dialog
+        visible={clearVisible}
+        title="Clear history"
+        message="Delete all entries? This cannot be undone."
+        confirmLabel="Clear"
+        destructive
+        onConfirm={confirmClearAll}
+        onDismiss={handleClearDismiss}
       />
     </View>
   );
