@@ -1,24 +1,14 @@
 import { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  Switch,
-  Pressable,
-  TextInput,
-  Alert,
-  ScrollView,
-  Linking,
-  Share,
-} from 'react-native';
+import { View, Text, Switch, Pressable, TextInput, ScrollView, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowSquareOut, CaretRight, Export, FileArrowDown } from 'phosphor-react-native';
+import { ArrowSquareOut, CaretRight } from 'phosphor-react-native';
 import { useColorScheme } from 'nativewind';
 
-import { ListRow, ListSection, SegmentedControl, Separator } from '@/components/ui';
+import { Dialog, ListRow, ListSection, SegmentedControl, Separator } from '@/components/ui';
+import { RulesTransferSection, type Notice } from '@/components/RulesTransferSection';
 import { useSettingsStore } from '@/stores/settings';
 import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
-import { useRulesStore, type Rule } from '@/stores/rules';
 import { usePermissionStore } from '@/stores/permissions';
 import { palette, COLORS } from '@/constants/colors';
 import * as NotifFilter from '../../../modules/notif-filter/src/index';
@@ -30,6 +20,12 @@ const POLICY_OPTIONS = ['allow', 'block'] as const;
 const APP_VERSION = Constants.expoConfig?.version ?? 'unknown';
 
 type ThemeOption = (typeof THEME_OPTIONS)[number];
+
+const NOTICE_PERMISSION: Notice = {
+  title: 'Notification permission needed',
+  message:
+    'Android will not show notifications from NotifFilter until you allow them in system settings.',
+};
 
 function capitalize(option: string): string {
   return option.charAt(0).toUpperCase() + option.slice(1);
@@ -59,13 +55,10 @@ export default function SettingsScreen() {
   const setIgnoredPackages = useSettingsStore((s) => s.setIgnoredPackages);
 
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
-  const rules = useRulesStore((s) => s.rules);
   const requestPostNotifications = usePermissionStore((s) => s.requestPostNotifications);
-  const importRules = useRulesStore((s) => s.importRules);
 
   const [logSizeText, setLogSizeText] = useState(String(logSize));
-  const [importVisible, setImportVisible] = useState(false);
-  const [importJson, setImportJson] = useState('');
+  const [notice, setNotice] = useState<Notice | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -101,58 +94,23 @@ export default function SettingsScreen() {
   async function handleSendTest() {
     const granted = await requestPostNotifications();
     if (!granted) {
-      Alert.alert(
-        'Notification permission needed',
-        'Android will not show notifications from NotifFilter until you allow them in system settings.',
-      );
+      setNotice(NOTICE_PERMISSION);
       return;
     }
 
     NotifFilter.postTestNotification('Test notification', 'This is a test from NotifFilter');
   }
 
-  function handleExport() {
-    const json = JSON.stringify(rules, null, 2);
-    Share.share({ message: json, title: 'NotifFilter rules export' });
-  }
-
-  function handleImportReplace() {
-    handleImportExecute('replace');
-  }
-
-  function handleImportMerge() {
-    handleImportExecute('merge');
-  }
-
-  function handleImportTap() {
-    setImportVisible(!importVisible);
-    setImportJson('');
-  }
-
   function handlePatternHelpTap() {
     router.push('/regex-help');
   }
 
-  function handleOpenRepo() {
-    Linking.openURL(REPO_URL);
+  function handleNoticeDismiss() {
+    setNotice(null);
   }
 
-  function handleImportExecute(mode: 'merge' | 'replace') {
-    try {
-      const parsed: Rule[] = JSON.parse(importJson);
-      if (!Array.isArray(parsed) || !parsed.every((r) => r.id && r.pattern)) {
-        Alert.alert('Invalid format', 'The pasted text is not a valid rules export.');
-        return;
-      }
-      importRules(
-        parsed.map((r) => ({ ...r, updatedAt: r.updatedAt ?? Date.now() })),
-        mode,
-      );
-      setImportVisible(false);
-      setImportJson('');
-    } catch {
-      Alert.alert('Invalid JSON', 'Could not parse the pasted text.');
-    }
+  function handleOpenRepo() {
+    Linking.openURL(REPO_URL);
   }
 
   return (
@@ -273,59 +231,7 @@ export default function SettingsScreen() {
             </Pressable>
           </ListSection>
 
-          <ListSection>
-            <ListRow
-              label="Export rules"
-              description={`${rules.length} rule${rules.length === 1 ? '' : 's'} as JSON`}
-              action={
-                <Pressable onPress={handleExport} className="flex-row items-center gap-1">
-                  <Export size={16} weight="regular" color={p.muted} />
-                </Pressable>
-              }
-            />
-            <Separator />
-            <ListRow
-              label="Import rules"
-              description="Paste JSON from a previous export"
-              action={
-                <Pressable onPress={handleImportTap} className="flex-row items-center gap-1">
-                  <FileArrowDown size={16} weight="regular" color={p.muted} />
-                </Pressable>
-              }
-            />
-            {importVisible ? (
-              <View className="gap-2 px-4 pb-3">
-                <TextInput
-                  value={importJson}
-                  onChangeText={setImportJson}
-                  placeholder="Paste exported JSON here"
-                  placeholderTextColor={p.muted}
-                  multiline
-                  className="h-24 rounded bg-surface-secondary p-2 text-xs text-surface-dark dark:bg-surface-dark-secondary dark:text-white"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <View className="flex-row gap-2">
-                  <Pressable
-                    onPress={handleImportReplace}
-                    className="flex-1 rounded bg-accent px-3 py-1.5 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
-                  >
-                    <Text className="text-center text-xs font-medium text-accent-text dark:text-accent-text-dark">
-                      Replace all
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleImportMerge}
-                    className="flex-1 rounded bg-surface-secondary px-3 py-1.5 active:bg-surface-tertiary dark:bg-surface-dark-secondary dark:active:bg-surface-dark-tertiary"
-                  >
-                    <Text className="text-center text-xs font-medium text-surface-dark dark:text-white">
-                      Merge
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : null}
-          </ListSection>
+          <RulesTransferSection scheme={scheme} onNotice={setNotice} />
 
           <ListSection>
             <ListRow
@@ -353,6 +259,15 @@ export default function SettingsScreen() {
           </ListSection>
         </View>
       </ScrollView>
+
+      {notice ? (
+        <Dialog
+          visible
+          title={notice.title}
+          message={notice.message}
+          onDismiss={handleNoticeDismiss}
+        />
+      ) : null}
     </View>
   );
 }
