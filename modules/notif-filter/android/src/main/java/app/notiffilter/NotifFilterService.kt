@@ -160,6 +160,7 @@ class NotifFilterService : NotificationListenerService() {
         val notification = sbn.notification
         val extras = notification.extras
         val isOngoing = notification.flags and Notification.FLAG_ONGOING_EVENT != 0
+        val isGroupSummary = notification.flags and Notification.FLAG_GROUP_SUMMARY != 0
 
         // Recorded before the exemption check so ignored apps stay listed in the picker
         // and the user can take them off the ignored list again.
@@ -219,8 +220,13 @@ class NotifFilterService : NotificationListenerService() {
             }
         }
 
-        historyStore.insert(entry, settings.logSize)
-        return true
+        // Group summaries repeat their children's content, so recording them renders
+        // the same message twice. Rules still evaluate and cancel the summary itself;
+        // only the history row is skipped.
+        if (!isGroupSummary) {
+            historyStore.insert(entry, settings.logSize)
+        }
+        return !isGroupSummary
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
