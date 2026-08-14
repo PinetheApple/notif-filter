@@ -1,5 +1,17 @@
 import { View, Text } from 'react-native';
 
+const SURFACE_STYLES = {
+  allow: 'bg-success-surface dark:bg-success-surface-dark',
+  deny: 'bg-warning-surface dark:bg-warning-surface-dark',
+  neutral: 'bg-surface-secondary dark:bg-surface-dark-secondary',
+};
+
+const TEXT_STYLES = {
+  allow: 'text-success dark:text-success-dark',
+  deny: 'text-warning dark:text-warning-dark',
+  neutral: 'text-muted dark:text-muted-dark',
+};
+
 export function Badge({
   label,
   variant = 'neutral',
@@ -7,25 +19,9 @@ export function Badge({
   label: string;
   variant?: 'allow' | 'deny' | 'neutral';
 }) {
-  const styles = {
-    allow: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-    deny: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200',
-    neutral: 'bg-surface-secondary dark:bg-surface-dark-secondary text-muted dark:text-muted-dark',
-  };
-
   return (
-    <View className={`rounded-md px-2 py-0.5 ${styles[variant]}`}>
-      <Text
-        className={`text-xs font-medium ${
-          variant === 'allow'
-            ? 'text-green-800 dark:text-green-200'
-            : variant === 'deny'
-              ? 'text-amber-800 dark:text-amber-200'
-              : 'text-muted dark:text-muted-dark'
-        }`}
-      >
-        {label}
-      </Text>
+    <View className={`rounded px-2 py-0.5 ${SURFACE_STYLES[variant]}`}>
+      <Text className={`text-xs font-medium ${TEXT_STYLES[variant]}`}>{label}</Text>
     </View>
   );
 }

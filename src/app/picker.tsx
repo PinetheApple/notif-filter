@@ -1,14 +1,32 @@
-import { useState, useMemo } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Image, Switch } from 'react-native';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  FlatList,
+  Switch,
+  InteractionManager,
+  type ListRenderItemInfo,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { CaretLeft, Check, MagnifyingGlass } from 'phosphor-react-native';
+import { CaretLeft, MagnifyingGlass } from 'phosphor-react-native';
 import { useColorScheme } from 'nativewind';
 
 import { usePickerStore } from '@/stores/picker';
-import { EmptyState } from '@/components/ui';
+import { EmptyState, LoadingState } from '@/components/ui';
+import { AppPickerRow } from '@/components/AppPickerRow';
 import { palette, COLORS } from '@/constants/colors';
 import * as NotifFilter from '../../modules/notif-filter/src/index';
+import type { InstalledApp } from '../../modules/notif-filter/src/index';
+
+const SEARCH_ICON_SIZE = 16;
+const BACK_ICON_SIZE = 22;
+
+function keyExtractor(item: InstalledApp) {
+  return item.package;
+}
 
 export default function AppPickerScreen() {
   const router = useRouter();
@@ -23,11 +41,21 @@ export default function AppPickerScreen() {
   const [query, setQuery] = useState('');
   const [onlyNotifying, setOnlyNotifying] = useState(false);
 
-  const apps = useMemo(() => NotifFilter.listInstalledApps(), []);
-  const seenPackages = useMemo(() => new Set(NotifFilter.getSeenPackages()), []);
+  const [apps, setApps] = useState<InstalledApp[] | null>(null);
+  const [seenPackages, setSeenPackages] = useState<ReadonlySet<string>>(new Set());
+
+  // Reading the package manager is a blocking bridge call; running it after the entry
+  // animation lets the header and loading indicator paint instead of a frozen blank frame.
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      setSeenPackages(new Set(NotifFilter.getSeenPackages()));
+      setApps(NotifFilter.listInstalledApps());
+    });
+    return () => task.cancel();
+  }, []);
 
   const filtered = useMemo(() => {
-    let list = apps;
+    let list = apps ?? [];
     if (onlyNotifying) {
       list = list.filter((a) => seenPackages.has(a.package));
     }
@@ -40,27 +68,32 @@ export default function AppPickerScreen() {
     return list;
   }, [apps, onlyNotifying, query, seenPackages]);
 
+  const isLoading = apps === null;
+
   function selectAll() {
+    if (apps === null) return;
     setSelected(apps.map((a) => a.package));
   }
 
-  function handleConfirm() {
+  function handleClose() {
     router.back();
   }
 
-  function renderAppIcon(packageName: string) {
-    try {
-      const uri = NotifFilter.getAppIcon(packageName);
-      if (uri) {
-        return <Image source={{ uri }} className="h-8 w-8 rounded" />;
-      }
-    } catch {
-      // Fall through to placeholder
-    }
+  function renderApp({ item }: ListRenderItemInfo<InstalledApp>) {
     return (
-      <View className="h-8 w-8 items-center justify-center rounded bg-surface-secondary dark:bg-surface-dark-secondary">
-        <Text className="text-[10px] text-muted dark:text-muted-dark">App</Text>
-      </View>
+      <AppPickerRow
+        app={item}
+        selected={selected.includes(item.package)}
+        hasPosted={seenPackages.has(item.package)}
+        scheme={scheme}
+        onToggle={togglePackage}
+      />
+    );
+  }
+
+  function renderEmpty() {
+    return (
+      <EmptyState title="No apps found" description="Try a different search term or filter." />
     );
   }
 
@@ -68,16 +101,16 @@ export default function AppPickerScreen() {
     <SafeAreaView className="flex-1 bg-white dark:bg-surface-dark">
       <View className="flex-row items-center gap-3 px-2 py-2">
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleClose}
           className="h-10 w-10 items-center justify-center rounded-full active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
         >
-          <CaretLeft size={22} weight="regular" color={p.text} />
+          <CaretLeft size={BACK_ICON_SIZE} weight="regular" color={p.text} />
         </Pressable>
         <Text className="flex-1 text-lg font-medium text-surface-dark dark:text-white">
           Choose apps
         </Text>
         <Pressable
-          onPress={handleConfirm}
+          onPress={handleClose}
           className="rounded-lg bg-accent px-4 py-2 active:bg-accent-pressed dark:bg-accent-dark dark:active:bg-accent-pressed-dark"
         >
           <Text className="text-sm font-medium text-accent-text dark:text-accent-text-dark">
@@ -88,7 +121,7 @@ export default function AppPickerScreen() {
 
       <View className="flex-row items-center gap-3 px-4 py-2">
         <View className="flex-1 flex-row items-center gap-2 rounded-lg bg-surface-secondary px-3 py-2 dark:bg-surface-dark-secondary">
-          <MagnifyingGlass size={16} weight="regular" color={p.muted} />
+          <MagnifyingGlass size={SEARCH_ICON_SIZE} weight="regular" color={p.muted} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -103,7 +136,12 @@ export default function AppPickerScreen() {
       <View className="flex-row items-center justify-between px-4 py-1">
         <Pressable
           onPress={selectAll}
-          className="rounded bg-surface-secondary px-3 py-1 active:bg-surface-dark-secondary dark:bg-surface-dark-secondary dark:active:bg-surface-secondary"
+          disabled={isLoading}
+          className={`rounded bg-surface-secondary px-3 py-1 dark:bg-surface-dark-secondary ${
+            isLoading
+              ? 'opacity-30'
+              : 'active:bg-surface-dark-secondary dark:active:bg-surface-secondary'
+          }`}
         >
           <Text className="text-xs text-accent dark:text-accent-dark">All apps</Text>
         </Pressable>
@@ -123,40 +161,17 @@ export default function AppPickerScreen() {
         </View>
       </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.package}
-        ListEmptyComponent={
-          <EmptyState title="No apps found" description="Try a different search term or filter." />
-        }
-        renderItem={({ item }) => {
-          const isSelected = selected.includes(item.package);
-          const hasPosted = seenPackages.has(item.package);
-
-          return (
-            <Pressable
-              onPress={() => togglePackage(item.package)}
-              className="flex-row items-center gap-3 px-4 py-2.5 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
-            >
-              {renderAppIcon(item.package)}
-              <View className="flex-1 gap-0.5">
-                <Text className="text-sm text-surface-dark dark:text-white">{item.label}</Text>
-                {hasPosted ? (
-                  <Text className="text-[11px] text-muted dark:text-muted-dark">
-                    Has sent notifications
-                  </Text>
-                ) : null}
-              </View>
-              {isSelected ? (
-                <Check size={18} weight="regular" color={p.text} />
-              ) : (
-                <View className="h-[18px] w-[18px] rounded-full border border-surface-secondary dark:border-surface-dark-secondary" />
-              )}
-            </Pressable>
-          );
-        }}
-        className="flex-1"
-      />
+      {isLoading ? (
+        <LoadingState scheme={scheme} />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={keyExtractor}
+          ListEmptyComponent={renderEmpty}
+          renderItem={renderApp}
+          className="flex-1"
+        />
+      )}
     </SafeAreaView>
   );
 }

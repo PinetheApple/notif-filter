@@ -13,7 +13,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Trash } from 'phosphor-react-native';
 import { useColorScheme } from 'nativewind';
 
-import { EmptyState } from '@/components/ui';
+import { EmptyState, LoadingState } from '@/components/ui';
 import { HistoryItem } from '@/components/HistoryItem';
 import { useHistoryStore } from '@/stores/history';
 import { usePermissionStore } from '@/stores/permissions';
@@ -165,7 +165,7 @@ export default function HistoryScreen() {
   if (!loaded) {
     return (
       <View className="flex-1 bg-white dark:bg-surface-dark">
-        <EmptyState title="Loading..." />
+        <LoadingState scheme={scheme} />
       </View>
     );
   }
@@ -180,8 +180,8 @@ export default function HistoryScreen() {
             onPress={handleClearAll}
             className="flex-row items-center gap-1 rounded px-3 py-1.5 active:bg-surface-secondary dark:active:bg-surface-dark-secondary"
           >
-            <Trash size={CLEAR_ICON_SIZE} weight="regular" color={p.destructive} />
-            <Text className="text-sm text-red-600 dark:text-red-400">Clear all</Text>
+            <Trash size={CLEAR_ICON_SIZE} weight="regular" color={p.danger} />
+            <Text className="text-sm text-danger dark:text-danger-dark">Clear all</Text>
           </Pressable>
         ) : null}
       </View>

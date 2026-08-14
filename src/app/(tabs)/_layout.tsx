@@ -33,8 +33,12 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Rules',
-            tabBarIcon: ({ color, size }) => (
-              <FadersHorizontal color={String(color)} size={size} weight="regular" />
+            tabBarIcon: ({ color, size, focused }) => (
+              <FadersHorizontal
+                color={String(color)}
+                size={size}
+                weight={focused ? 'bold' : 'regular'}
+              />
             ),
           }}
         />
@@ -42,8 +46,12 @@ export default function TabLayout() {
           name="history"
           options={{
             title: 'History',
-            tabBarIcon: ({ color, size }) => (
-              <ClockCounterClockwise color={String(color)} size={size} weight="regular" />
+            tabBarIcon: ({ color, size, focused }) => (
+              <ClockCounterClockwise
+                color={String(color)}
+                size={size}
+                weight={focused ? 'bold' : 'regular'}
+              />
             ),
           }}
         />
@@ -51,8 +59,8 @@ export default function TabLayout() {
           name="settings"
           options={{
             title: 'Settings',
-            tabBarIcon: ({ color, size }) => (
-              <Gear color={String(color)} size={size} weight="regular" />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Gear color={String(color)} size={size} weight={focused ? 'bold' : 'regular'} />
             ),
           }}
         />

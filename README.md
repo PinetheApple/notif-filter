@@ -79,11 +79,11 @@ modules/
 | #   | Phase                                   | Status  | GitHub                                                      |
 | --- | --------------------------------------- | ------- | ----------------------------------------------------------- |
 | M0  | Scaffold                                | ✅ Done | —                                                           |
-| M1  | Native core + permission flow           | 🔲      | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
-| M2  | Rule engine + RuleStore + app inventory | 🔲      | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
-| M3  | Rules UI: editor, picker, regex test    | 🔲      | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
-| M4  | History: SQLite log, restore            | 🔲      | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
-| M5  | Polish: onboarding, anti-slop, e2e, APK | 🔲      | [#6](https://github.com/PinetheApple/notif-filter/issues/6) |
+| M1  | Native core + permission flow           | ✅ Done | [#1](https://github.com/PinetheApple/notif-filter/issues/1) |
+| M2  | Rule engine + RuleStore + app inventory | ✅ Done | [#3](https://github.com/PinetheApple/notif-filter/issues/3) |
+| M3  | Rules UI: editor, picker, regex test    | ✅ Done | [#2](https://github.com/PinetheApple/notif-filter/issues/2) |
+| M4  | History: SQLite log, restore            | ✅ Done | [#4](https://github.com/PinetheApple/notif-filter/issues/4) |
+| M5  | Polish: onboarding, anti-slop, e2e, APK | ✅ Done | [#5](https://github.com/PinetheApple/notif-filter/issues/5) |
 
 Work through them in order. Each milestone has full acceptance criteria in the issue body.
 
