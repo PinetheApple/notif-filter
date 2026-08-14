@@ -219,7 +219,7 @@ class NotifFilterService : NotificationListenerService() {
             }
         }
 
-        historyStore.insert(entry)
+        historyStore.insert(entry, settings.logSize)
         return true
     }
 
