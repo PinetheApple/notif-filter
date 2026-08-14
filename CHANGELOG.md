@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.0.7](https://github.com/PinetheApple/notif-filter/compare/v0.0.6...v0.0.7) (2026-08-14)
+
+
+### Features
+
+* add a script to build and install the current build on a device ([#80](https://github.com/PinetheApple/notif-filter/issues/80)) ([1bf9bbc](https://github.com/PinetheApple/notif-filter/commit/1bf9bbcba366aa3386aeb9349fe4a9049e8ed987))
+* add regex help to the rule editor and settings ([#69](https://github.com/PinetheApple/notif-filter/issues/69)) ([c5b3edc](https://github.com/PinetheApple/notif-filter/commit/c5b3edcdbb2992de83bee73f029738d28afb7fec))
+* replace Expo template art with a real app icon ([#86](https://github.com/PinetheApple/notif-filter/issues/86)) ([a2fb3c7](https://github.com/PinetheApple/notif-filter/commit/a2fb3c73c442cee7c2735ff1da48cb50e9182a9b))
+* replace platform Alert dialogs with a themed dialog ([#87](https://github.com/PinetheApple/notif-filter/issues/87)) ([a12de8c](https://github.com/PinetheApple/notif-filter/commit/a12de8cfc8e1e553153fb24e9809ee8c175a6510))
+
+
+### Bug Fixes
+
+* bump drifted Expo packages to SDK 57 expectations ([#85](https://github.com/PinetheApple/notif-filter/issues/85)) ([bf4c2ce](https://github.com/PinetheApple/notif-filter/commit/bf4c2ce9b2cc602fbd19b6954e8252c9b239edc2))
+* derive Android versionCode from expo.version ([#81](https://github.com/PinetheApple/notif-filter/issues/81)) ([59988f6](https://github.com/PinetheApple/notif-filter/commit/59988f69d60f538eb33a65b3a99f2b3e1266837c))
+* keep rule editor inputs visible above the keyboard ([#72](https://github.com/PinetheApple/notif-filter/issues/72)) ([139fdc6](https://github.com/PinetheApple/notif-filter/commit/139fdc6af4db5b1ac81a37cbe1379e71bae7820e))
+* let rule order decide precedence between allow and deny ([#65](https://github.com/PinetheApple/notif-filter/issues/65)) ([1ee1bda](https://github.com/PinetheApple/notif-filter/commit/1ee1bda1e41b07bf601dedb8145c8513f89916bf))
+* unbreak CI and add a preflight script that runs every gate locally ([#78](https://github.com/PinetheApple/notif-filter/issues/78)) ([05debf9](https://github.com/PinetheApple/notif-filter/commit/05debf9f4a983d210fc30d656d867d2ffcc814b5))
+
 ## [0.0.6](https://github.com/PinetheApple/notif-filter/compare/v0.0.5...v0.0.6) (2026-08-10)
 
 
