@@ -1,8 +1,9 @@
-import { View, FlatList, Alert, type ListRenderItemInfo } from 'react-native';
+import { useState } from 'react';
+import { View, FlatList, type ListRenderItemInfo } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 
-import { EmptyState } from '@/components/ui';
+import { Dialog, EmptyState } from '@/components/ui';
 import { AddRuleFab } from '@/components/AddRuleFab';
 import { RuleRow } from '@/components/RuleRow';
 import { useRulesStore, type Rule } from '@/stores/rules';
@@ -20,6 +21,8 @@ export default function RulesScreen() {
   const removeRule = useRulesStore((s) => s.removeRule);
   const reorderRules = useRulesStore((s) => s.reorderRules);
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
   function handleAdd() {
     usePickerStore.getState().open(PICKER_PURPOSE.ruleScope, []);
     router.push('/rule/new');
@@ -36,10 +39,15 @@ export default function RulesScreen() {
   }
 
   function handleDelete(id: string) {
-    Alert.alert('Delete rule', 'This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => removeRule(id) },
-    ]);
+    setPendingDeleteId(id);
+  }
+
+  function handleDeleteDismiss() {
+    setPendingDeleteId(null);
+  }
+
+  function handleDeleteConfirm() {
+    if (pendingDeleteId) removeRule(pendingDeleteId);
   }
 
   function handleMoveUp(index: number) {
@@ -100,6 +108,15 @@ export default function RulesScreen() {
       />
 
       <AddRuleFab onPress={handleAdd} scheme={scheme} />
+      <Dialog
+        visible={pendingDeleteId !== null}
+        title="Delete rule"
+        message="This action cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeleteConfirm}
+        onDismiss={handleDeleteDismiss}
+      />
     </View>
   );
 }
