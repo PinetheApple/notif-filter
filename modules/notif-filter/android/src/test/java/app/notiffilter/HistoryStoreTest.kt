@@ -210,4 +210,30 @@ class HistoryStoreTest {
         assertEquals("0|com.gmail|1|null|1", obj.getString("notifKey"))
         assertTrue(obj.getBoolean("recovered"))
     }
+
+    // ── Pruning ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `insert prunes to the configured log size`() {
+        val store = store()
+        for (i in 1..10) {
+            store.insert(entry("e$i", i.toLong()), maxEntries = 5)
+        }
+
+        val entries = store.query(10, null)
+
+        assertEquals(5, entries.size)
+        assertEquals("e10", entries.first().id)
+        assertEquals("e6", entries.last().id)
+    }
+
+    @Test
+    fun `insert keeps every row under the default limit`() {
+        val store = store()
+        for (i in 1..10) {
+            store.insert(entry("e$i", i.toLong()))
+        }
+
+        assertEquals(10, store.query(20, null).size)
+    }
 }

@@ -48,8 +48,8 @@ class HistoryStore(context: Context) {
 
     private val dbHelper = HistoryDbHelper(context)
 
-    /** Insert a new entry and auto-prune if over capacity. */
-    fun insert(entry: HistoryEntry) {
+    /** Insert a new entry and auto-prune past [maxEntries]. */
+    fun insert(entry: HistoryEntry, maxEntries: Int = DEFAULT_MAX_ENTRIES) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put("id", entry.id)
@@ -72,7 +72,8 @@ class HistoryStore(context: Context) {
             put("postTime", entry.postTime)
         }
         db.insertWithOnConflict(TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE)
-        prune(db, MAX_ENTRIES)
+        // A non-positive limit means pruning is disabled for this insert.
+        if (maxEntries > 0) prune(db, maxEntries)
     }
 
     /**
@@ -211,7 +212,7 @@ class HistoryStore(context: Context) {
 
     companion object {
         private const val TABLE = "history"
-        private const val MAX_ENTRIES = 500
+        const val DEFAULT_MAX_ENTRIES = 500
         private const val MAX_TITLE_LEN = 256
         private const val MAX_TEXT_LEN = 1024
         private const val MAX_SHORT_LEN = 256
