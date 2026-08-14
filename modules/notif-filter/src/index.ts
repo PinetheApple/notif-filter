@@ -4,6 +4,9 @@ import type { EventSubscription } from 'expo-modules-core';
 const NativeModule = requireNativeModule<{
   isListenerEnabled(): boolean;
   openNotificationAccessSettings(): void;
+  isIgnoringBatteryOptimizations(): boolean;
+  requestBatteryOptimizationExemption(): Promise<void>;
+  openBatteryOptimizationSettings(): Promise<void>;
   postTestNotification(title: string, text: string): void;
   getRules(): string;
   saveRules(json: string): void;
@@ -34,6 +37,18 @@ export function isListenerEnabled(): boolean {
 
 export function openNotificationAccessSettings(): void {
   NativeModule.openNotificationAccessSettings();
+}
+
+export function isIgnoringBatteryOptimizations(): boolean {
+  return NativeModule.isIgnoringBatteryOptimizations();
+}
+
+export function requestBatteryOptimizationExemption(): Promise<void> {
+  return NativeModule.requestBatteryOptimizationExemption();
+}
+
+export function openBatteryOptimizationSettings(): Promise<void> {
+  return NativeModule.openBatteryOptimizationSettings();
 }
 
 export function postTestNotification(title: string, text: string): void {

@@ -56,6 +56,9 @@ export default function SettingsScreen() {
 
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const requestPostNotifications = usePermissionStore((s) => s.requestPostNotifications);
+  // Refreshed on every app resume by checkPermission, so a grant made in
+  // system settings is visible here without a manual reload.
+  const batteryExempt = usePermissionStore((s) => s.batteryExempt) === true;
 
   const [logSizeText, setLogSizeText] = useState(String(logSize));
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -72,6 +75,14 @@ export default function SettingsScreen() {
   function handleIgnoredAppsTap() {
     usePickerStore.getState().open(PICKER_PURPOSE.ignoredApps, ignoredPackages);
     router.push('/picker');
+  }
+
+  async function handleBatteryTap() {
+    if (batteryExempt) {
+      await NotifFilter.openBatteryOptimizationSettings();
+    } else {
+      await NotifFilter.requestBatteryOptimizationExemption();
+    }
   }
 
   function handleLogSizeChange(text: string) {
@@ -199,6 +210,29 @@ export default function SettingsScreen() {
                 />
               }
             />
+          </ListSection>
+
+          <ListSection>
+            <Pressable
+              onPress={handleBatteryTap}
+              className="active:bg-surface-tertiary dark:active:bg-surface-dark-tertiary"
+            >
+              <ListRow
+                label="Battery optimization"
+                description={
+                  batteryExempt
+                    ? 'Exempt — the system will not put the filter to sleep'
+                    : 'Protect the filter from being put to sleep by the system'
+                }
+                action={
+                  batteryExempt ? (
+                    <Text className="text-sm text-muted dark:text-muted-dark">Exempt</Text>
+                  ) : (
+                    <CaretRight size={16} weight="regular" color={p.muted} />
+                  )
+                }
+              />
+            </Pressable>
           </ListSection>
 
           <ListSection>

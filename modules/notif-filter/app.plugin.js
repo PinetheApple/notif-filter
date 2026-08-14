@@ -121,6 +121,7 @@ function withNotifFilterService(config) {
     addPermission(manifest, 'android.permission.BIND_NOTIFICATION_LISTENER_SERVICE');
     addPermission(manifest, 'android.permission.QUERY_ALL_PACKAGES');
     addPermission(manifest, 'android.permission.POST_NOTIFICATIONS');
+    addPermission(manifest, 'android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS');
     removePermissions(manifest, ['android.permission.INTERNET']);
 
     // Service declaration

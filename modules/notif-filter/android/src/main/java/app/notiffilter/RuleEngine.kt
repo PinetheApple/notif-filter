@@ -76,7 +76,8 @@ data class Settings(
     val logSize: Int,
     val theme: String,
     val onboardingDone: Boolean = false,
-    val ignoredPackages: List<String> = emptyList()
+    val ignoredPackages: List<String> = emptyList(),
+    val batteryPromptShown: Boolean = false
 )
 
 /**

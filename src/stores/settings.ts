@@ -17,6 +17,8 @@ type SettingsState = {
   setOnboardingDone: (v: boolean) => void;
   ignoredPackages: string[];
   setIgnoredPackages: (packages: string[]) => void;
+  batteryPromptShown: boolean;
+  setBatteryPromptShown: (v: boolean) => void;
   loaded: boolean;
   loadFromNative: () => void;
 };
@@ -30,6 +32,7 @@ function persist(
     | 'themePreference'
     | 'onboardingDone'
     | 'ignoredPackages'
+    | 'batteryPromptShown'
   >,
 ): void {
   NotifFilter.saveSettings(
@@ -40,6 +43,7 @@ function persist(
       theme: s.themePreference,
       onboardingDone: s.onboardingDone,
       ignoredPackages: s.ignoredPackages,
+      batteryPromptShown: s.batteryPromptShown,
     }),
   );
 }
@@ -87,6 +91,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       return { ignoredPackages };
     });
   },
+  batteryPromptShown: false,
+  setBatteryPromptShown: (batteryPromptShown) => {
+    set((s) => {
+      persist({ ...s, batteryPromptShown });
+      return { batteryPromptShown };
+    });
+  },
   loaded: false,
   loadFromNative: () => {
     try {
@@ -99,12 +110,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
         themePreference: data.theme ?? 'system',
         onboardingDone: data.onboardingDone ?? false,
         ignoredPackages: data.ignoredPackages ?? [],
+        batteryPromptShown: data.batteryPromptShown ?? false,
         loaded: true,
       });
     } catch {
       // Fresh installs get default JSON from native, not an error — never
       // re-show onboarding after completion because a read failed.
-      set({ loaded: true, onboardingDone: true });
+      set({ loaded: true, onboardingDone: true, batteryPromptShown: true });
     }
   },
 }));

@@ -8,6 +8,7 @@ const ANDROID_13 = 33;
 
 type PermissionState = {
   listenerEnabled: boolean | null;
+  batteryExempt: boolean | null;
   postNotificationsGranted: boolean | null;
   setListenerEnabled: (v: boolean) => void;
   checkPermission: () => Promise<void>;
@@ -16,18 +17,22 @@ type PermissionState = {
 
 const NotifFilter = requireNativeModule<{
   isListenerEnabled(): boolean;
+  isIgnoringBatteryOptimizations(): boolean;
 }>('NotifFilter');
 
 export const usePermissionStore = create<PermissionState>((set) => ({
   listenerEnabled: null,
+  batteryExempt: null,
   postNotificationsGranted: null,
   setListenerEnabled: (listenerEnabled) => set({ listenerEnabled }),
   checkPermission: async () => {
     try {
-      const enabled = NotifFilter.isListenerEnabled();
-      set({ listenerEnabled: enabled });
+      set({
+        listenerEnabled: NotifFilter.isListenerEnabled(),
+        batteryExempt: NotifFilter.isIgnoringBatteryOptimizations(),
+      });
     } catch {
-      set({ listenerEnabled: false });
+      set({ listenerEnabled: false, batteryExempt: false });
     }
   },
   requestPostNotifications: async () => {

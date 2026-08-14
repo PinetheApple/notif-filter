@@ -190,7 +190,7 @@ class RuleStoreTest {
 
     @Test
     fun `settingsToJson writes all known keys`() {
-        val s = Settings("allow", false, 500, "system", true)
+        val s = Settings("allow", false, 500, "system", true, batteryPromptShown = true)
         val obj = JSONObject(RuleStore.settingsToJson(s))
         assertEquals("allow", obj.getString("defaultPolicy"))
         assertFalse(obj.getBoolean("filterOngoing"))
@@ -198,6 +198,7 @@ class RuleStoreTest {
         assertEquals("system", obj.getString("theme"))
         assertTrue(obj.getBoolean("onboardingDone"))
         assertEquals(0, obj.getJSONArray("ignoredPackages").length())
+        assertTrue(obj.getBoolean("batteryPromptShown"))
     }
 
     @Test
@@ -221,6 +222,19 @@ class RuleStoreTest {
         val s = RuleStore.parseSettings("""{"ignoredPackages":["com.a","com.b"]}""")
         val out = RuleStore.parseSettings(RuleStore.settingsToJson(s))
         assertEquals(listOf("com.a", "com.b"), out.ignoredPackages)
+    }
+
+    @Test
+    fun `parseSettings defaults batteryPromptShown to false for existing installs`() {
+        val s = RuleStore.parseSettings("""{"defaultPolicy":"block"}""")
+        assertFalse(s.batteryPromptShown)
+    }
+
+    @Test
+    fun `settingsToJson round-trip preserves batteryPromptShown`() {
+        val s = RuleStore.parseSettings("""{"batteryPromptShown":true}""")
+        val out = RuleStore.parseSettings(RuleStore.settingsToJson(s))
+        assertTrue(out.batteryPromptShown)
     }
 
     // ── RuleEngine.compile ────────────────────────────────────────────────────
