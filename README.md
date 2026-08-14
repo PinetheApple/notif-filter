@@ -8,6 +8,19 @@ A `NotificationListenerService` (system-bound, always running once enabled) capt
 
 The UI is React Native (Expo SDK 57) — rule management only. The heavy lifting is native.
 
+## Battery optimization exemption
+
+The app requests `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` so OEM battery managers
+(Samsung, Xiaomi, OnePlus, Oppo) do not kill the bound `NotificationListenerService`
+overnight — the most common cause of a notification listener silently stopping.
+The exemption is requested once, non-blocking, and revocable in Settings.
+
+This is a permitted use case for a notification-listener app, and the exemption
+costs no power in practice: the app has no alarms, jobs, wake locks, timers, or
+foreground service, and no network in release builds. The process only runs when
+Android has already woken to deliver a notification; the exemption merely stops
+the OEM from killing that already-idle bound service.
+
 ## Quick start
 
 ```bash

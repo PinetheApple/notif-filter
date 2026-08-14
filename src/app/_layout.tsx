@@ -6,6 +6,7 @@ import { useColorScheme } from 'nativewind';
 
 import '@/global.css';
 import { Onboarding } from '@/components/Onboarding';
+import { BatteryExemptionPrompt } from '@/components/BatteryExemptionPrompt';
 import { usePermissionStore } from '@/stores/permissions';
 import { useRulesStore } from '@/stores/rules';
 import { useSettingsStore } from '@/stores/settings';
@@ -82,9 +83,12 @@ export default function RootLayout() {
   return (
     <NavThemeProvider value={scheme === 'dark' ? NAV_DARK : NAV_LIGHT}>
       {onboardingDone ? (
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+          <BatteryExemptionPrompt />
+        </>
       ) : (
         <Onboarding scheme={scheme} />
       )}

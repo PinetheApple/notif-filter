@@ -143,7 +143,8 @@ class RuleStore(context: Context) {
                 onboardingDone = obj.optBoolean("onboardingDone", false),
                 ignoredPackages = if (ignored != null) {
                     (0 until ignored.length()).map { ignored.getString(it) }
-                } else emptyList()
+                } else emptyList(),
+                batteryPromptShown = obj.optBoolean("batteryPromptShown", false)
             )
         }
 
@@ -155,6 +156,7 @@ class RuleStore(context: Context) {
             obj.put("theme", settings.theme)
             obj.put("onboardingDone", settings.onboardingDone)
             obj.put("ignoredPackages", JSONArray(settings.ignoredPackages))
+            obj.put("batteryPromptShown", settings.batteryPromptShown)
             return obj.toString()
         }
 

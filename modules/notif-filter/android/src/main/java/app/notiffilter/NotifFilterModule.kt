@@ -3,6 +3,7 @@ package app.notiffilter
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,7 +11,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Base64
 import android.util.LruCache
@@ -24,6 +27,9 @@ class NotifFilterModule : Module() {
 
     private val listenerConnected
         get() = NotifFilterService.isConnected
+
+    private val powerManager: PowerManager
+        get() = context.getSystemService(Context.POWER_SERVICE) as PowerManager
 
     private val ruleStore by lazy { RuleStore.get(context) }
     private val historyStore by lazy { HistoryStore(context) }
@@ -44,6 +50,27 @@ class NotifFilterModule : Module() {
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
+        }
+
+        Function("isIgnoringBatteryOptimizations") {
+            powerManager.isIgnoringBatteryOptimizations(context.packageName)
+        }
+
+        AsyncFunction("requestBatteryOptimizationExemption") {
+            // The package URI makes Android show the confirm dialog for this app
+            // directly; without it some OEMs only offer the bare list.
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                .setData(Uri.parse("package:${context.packageName}"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                context.startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                openBatteryOptimizationList()
+            }
+        }
+
+        AsyncFunction("openBatteryOptimizationSettings") {
+            openBatteryOptimizationList()
         }
 
         Function("getRules") {
@@ -206,5 +233,11 @@ class NotifFilterModule : Module() {
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 80, stream)
         return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun openBatteryOptimizationList() {
+        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 }
