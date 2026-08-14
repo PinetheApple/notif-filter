@@ -179,8 +179,38 @@ function withoutInternetInRelease(config) {
   ]);
 }
 
+// Each semver component gets this many slots, so 1.2.3 -> 10203 and the code rises
+// monotonically with expo.version (release-please's single source of truth).
+const VERSION_COMPONENT_SLOTS = 100;
+const SEMVER_PATTERN = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/;
+
+function withDerivedVersionCode(config) {
+  const match = SEMVER_PATTERN.exec(config.version ?? '');
+  if (!match) {
+    throw new Error(
+      `notif-filter: expo.version must be a semver string to derive an Android versionCode, got ${JSON.stringify(config.version)}`,
+    );
+  }
+
+  const [, major, minor, patch] = match.map(Number);
+  if (minor >= VERSION_COMPONENT_SLOTS || patch >= VERSION_COMPONENT_SLOTS) {
+    throw new Error(
+      `notif-filter: expo.version ${config.version} overflows ${VERSION_COMPONENT_SLOTS} slots per component`,
+    );
+  }
+
+  config.android = config.android ?? {};
+  if (config.android.versionCode == null) {
+    config.android.versionCode =
+      (major * VERSION_COMPONENT_SLOTS + minor) * VERSION_COMPONENT_SLOTS + patch;
+  }
+
+  return config;
+}
+
 function withNotifFilter(config) {
   return withPlugins(config, [
+    withDerivedVersionCode,
     withNotifFilterService,
     withoutInternetInRelease,
     withShippedAbis,
