@@ -45,7 +45,8 @@
             "extraProguardRules": "# The platform instantiates the listener service by class name from the merged\n# manifest, so R8 renaming or stripping it disables filtering with no visible error.\n-keep class app.notiffilter.NotifFilterService { *; }\n-keep class app.notiffilter.NotifFilterModule { *; }\n"
           }
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,
