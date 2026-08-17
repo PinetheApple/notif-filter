@@ -166,9 +166,15 @@ class NotifFilterModule : Module() {
             manager.notify(9999, notification)
         }
 
-        Function("getHistoryEntries") { limit: Int, beforeTs: Double? ->
-            val before = if (beforeTs != null) beforeTs.toLong() else null
-            val entries = historyStore.query(limit, before)
+        Function("getHistoryEntries") {
+            limit: Int,
+            beforeTs: Double?,
+            query: String?,
+            packages: List<String>?,
+            disposition: String?,
+            ascending: Boolean ->
+            val before = beforeTs?.toLong()
+            val entries = historyStore.query(limit, before, query, packages, disposition, ascending)
             historyStore.entriesToJson(entries)
         }
 

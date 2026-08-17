@@ -8,7 +8,7 @@ import { useColorScheme } from 'nativewind';
 import { Dialog, ListRow, ListSection, SegmentedControl, Separator } from '@/components/ui';
 import { RulesTransferSection, type Notice } from '@/components/RulesTransferSection';
 import { useSettingsStore } from '@/stores/settings';
-import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
+import { usePickerStore, PICKER_PURPOSE, sameSelection } from '@/stores/picker';
 import { usePermissionStore } from '@/stores/permissions';
 import { palette, COLORS } from '@/constants/colors';
 import * as NotifFilter from '../../../modules/notif-filter/src/index';
@@ -33,10 +33,6 @@ function capitalize(option: string): string {
 
 function formatThemeLabel(option: ThemeOption): string {
   return option === THEME_AUTO_OPTION ? 'Auto' : capitalize(option);
-}
-
-function isSameSelection(a: string[], b: string[]): boolean {
-  return a.length === b.length && a.every((pkg, i) => pkg === b[i]);
 }
 
 export default function SettingsScreen() {
@@ -67,7 +63,7 @@ export default function SettingsScreen() {
     useCallback(() => {
       const picker = usePickerStore.getState();
       if (picker.purpose !== PICKER_PURPOSE.ignoredApps) return;
-      if (isSameSelection(picker.selected, ignoredPackages)) return;
+      if (sameSelection(picker.selected, ignoredPackages)) return;
       setIgnoredPackages(picker.selected);
     }, [ignoredPackages, setIgnoredPackages]),
   );

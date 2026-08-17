@@ -21,7 +21,14 @@ const NativeModule = requireNativeModule<{
     title: string,
     text: string,
   ): { matches: boolean; matchedSegment: string };
-  getHistoryEntries(limit: number, beforeTs?: number): string;
+  getHistoryEntries(
+    limit: number,
+    beforeTs?: number,
+    query?: string,
+    packages?: string[],
+    disposition?: string,
+    ascending?: boolean,
+  ): string;
   clearHistory(): void;
   restoreEntry(id: string): void;
   addListener(
@@ -140,8 +147,22 @@ export type HistoryEntry = {
   postTime: number;
 };
 
-export function getHistoryEntries(limit: number, beforeTs?: number): HistoryEntry[] {
-  const json = NativeModule.getHistoryEntries(limit, beforeTs);
+export function getHistoryEntries(
+  limit: number,
+  beforeTs?: number,
+  query?: string,
+  packages?: string[],
+  disposition?: 'shown' | 'blocked',
+  ascending?: boolean,
+): HistoryEntry[] {
+  const json = NativeModule.getHistoryEntries(
+    limit,
+    beforeTs,
+    query,
+    packages,
+    disposition,
+    ascending,
+  );
   return JSON.parse(json);
 }
 

@@ -261,4 +261,137 @@ class HistoryStoreTest {
 
         assertEquals(10, store.query(20, null).size)
     }
+
+    // ── Search, filter, sort ───────────────────────────────────────────────────
+
+    /** Four rows spanning both dispositions and two packages, timestamps 100..400. */
+    private fun seedMixed(store: HistoryStore) {
+        store.insert(
+            entry("a", 100L).copy(
+                packageName = "com.gmail", appLabel = "Gmail",
+                title = "Standup notes", text = "meeting at nine", disposition = "shown"
+            )
+        )
+        store.insert(
+            entry("b", 200L).copy(
+                packageName = "com.slack", appLabel = "Slack",
+                title = "Deploy failed", text = "build 12 broke", disposition = "blocked"
+            )
+        )
+        store.insert(
+            entry("c", 300L).copy(
+                packageName = "com.gmail", appLabel = "Gmail",
+                title = "Invoice", text = "standup billing", disposition = "blocked"
+            )
+        )
+        store.insert(
+            entry("d", 400L).copy(
+                packageName = "com.maps", appLabel = "Standup Maps",
+                title = "Traffic", text = "slow on route", disposition = "shown"
+            )
+        )
+    }
+
+    @Test
+    fun `query matches title text and app label case-insensitively`() {
+        val store = store()
+        seedMixed(store)
+
+        val ids = store.query(10, null, query = "STANDUP").map { it.id }
+
+        assertEquals(listOf("d", "c", "a"), ids)
+    }
+
+    @Test
+    fun `query excludes rows the text does not match`() {
+        val store = store()
+        seedMixed(store)
+
+        assertEquals(listOf("b"), store.query(10, null, query = "deploy").map { it.id })
+    }
+
+    @Test
+    fun `wildcards in the query are matched literally`() {
+        val store = store()
+        store.insert(entry("a", 100L).copy(title = "100% done"))
+        store.insert(entry("b", 200L).copy(title = "nothing here"))
+
+        assertEquals(listOf("a"), store.query(10, null, query = "100%").map { it.id })
+        assertEquals(0, store.query(10, null, query = "%_%").size)
+    }
+
+    @Test
+    fun `package filter keeps only the listed packages`() {
+        val store = store()
+        seedMixed(store)
+
+        val ids = store.query(10, null, packages = listOf("com.gmail", "com.maps")).map { it.id }
+
+        assertEquals(listOf("d", "c", "a"), ids)
+    }
+
+    @Test
+    fun `disposition filter keeps only that disposition`() {
+        val store = store()
+        seedMixed(store)
+
+        assertEquals(listOf("c", "b"), store.query(10, null, disposition = "blocked").map { it.id })
+    }
+
+    @Test
+    fun `text package and disposition filters compose`() {
+        val store = store()
+        seedMixed(store)
+
+        val ids = store.query(
+            10, null,
+            query = "standup",
+            packages = listOf("com.gmail"),
+            disposition = "blocked"
+        ).map { it.id }
+
+        assertEquals(listOf("c"), ids)
+    }
+
+    @Test
+    fun `ascending order returns oldest first`() {
+        val store = store()
+        seedMixed(store)
+
+        val ids = store.query(10, null, ascending = true).map { it.id }
+
+        assertEquals(listOf("a", "b", "c", "d"), ids)
+    }
+
+    @Test
+    fun `paging descending under a query neither skips nor duplicates`() {
+        val store = store()
+        seedMixed(store)
+
+        val first = store.query(2, null, query = "standup")
+        val second = store.query(2, first.last().timestamp, query = "standup")
+
+        assertEquals(listOf("d", "c"), first.map { it.id })
+        assertEquals(listOf("a"), second.map { it.id })
+    }
+
+    @Test
+    fun `paging ascending under a query neither skips nor duplicates`() {
+        val store = store()
+        seedMixed(store)
+
+        val first = store.query(2, null, query = "standup", ascending = true)
+        val second = store.query(2, first.last().timestamp, query = "standup", ascending = true)
+
+        assertEquals(listOf("a", "c"), first.map { it.id })
+        assertEquals(listOf("d"), second.map { it.id })
+    }
+
+    @Test
+    fun `a blank query does not filter`() {
+        val store = store()
+        seedMixed(store)
+
+        assertEquals(4, store.query(10, null, query = "   ").size)
+    }
 }

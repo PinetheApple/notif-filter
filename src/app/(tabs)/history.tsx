@@ -14,9 +14,10 @@ import { useColorScheme } from 'nativewind';
 
 import { Dialog, EmptyState, LoadingState } from '@/components/ui';
 import { HistoryItem } from '@/components/HistoryItem';
-import { useHistoryStore } from '@/stores/history';
+import { HistoryFilterBar } from '@/components/HistoryFilterBar';
+import { useHistoryStore, DEFAULT_FILTERS, type HistoryFilters } from '@/stores/history';
 import { usePermissionStore } from '@/stores/permissions';
-import { usePickerStore, PICKER_PURPOSE } from '@/stores/picker';
+import { usePickerStore, PICKER_PURPOSE, sameSelection } from '@/stores/picker';
 import { palette } from '@/constants/colors';
 import type { RuleAction } from '@/stores/rules';
 import type { HistoryEntry } from '../../../modules/notif-filter/src/index';
@@ -42,6 +43,11 @@ export default function HistoryScreen() {
   const refresh = useHistoryStore((s) => s.refresh);
   const clearAll = useHistoryStore((s) => s.clearAll);
   const restoreEntry = useHistoryStore((s) => s.restoreEntry);
+  const filters = useHistoryStore((s) => s.filters);
+  const setFilters = useHistoryStore((s) => s.setFilters);
+
+  const filtersActive =
+    filters.query !== '' || filters.packages.length > 0 || filters.disposition !== 'all';
 
   const requestPostNotifications = usePermissionStore((s) => s.requestPostNotifications);
 
@@ -79,10 +85,21 @@ export default function HistoryScreen() {
   // while the user was on another tab. Focus does not re-fire on foregrounding.
   useFocusEffect(
     useCallback(() => {
-      refresh();
+      const picker = usePickerStore.getState();
+      const current = useHistoryStore.getState().filters;
+      const pickedApps =
+        picker.purpose === PICKER_PURPOSE.historyFilter &&
+        !sameSelection(picker.selected, current.packages);
+
+      if (pickedApps) {
+        setFilters({ ...current, packages: picker.selected });
+      } else {
+        refresh();
+      }
+
       const sub = AppState.addEventListener('change', handleAppStateChange);
       return () => sub.remove();
-    }, [refresh, handleAppStateChange]),
+    }, [refresh, setFilters, handleAppStateChange]),
   );
 
   const handleRefresh = useCallback(async () => {
@@ -112,6 +129,22 @@ export default function HistoryScreen() {
   const handleClearDismiss = useCallback(() => {
     setClearVisible(false);
   }, []);
+
+  const handleFiltersChange = useCallback(
+    (next: HistoryFilters) => {
+      setFilters(next);
+    },
+    [setFilters],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+  }, [setFilters]);
+
+  function handleOpenAppPicker() {
+    usePickerStore.getState().open(PICKER_PURPOSE.historyFilter, filters.packages);
+    router.push('/picker');
+  }
 
   async function handleRestore(id: string) {
     if (await requestPostNotifications()) {
@@ -155,6 +188,23 @@ export default function HistoryScreen() {
   }
 
   function renderEmpty() {
+    if (filtersActive) {
+      return (
+        <View className="flex-1 items-center justify-center gap-3">
+          <EmptyState
+            title="No matches"
+            description="No entries match the current search and filters."
+          />
+          <Pressable
+            onPress={handleClearFilters}
+            className="rounded-lg bg-surface-secondary px-4 py-2 dark:bg-surface-dark-secondary"
+          >
+            <Text className="text-sm text-accent dark:text-accent-dark">Clear filters</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
     return (
       <EmptyState
         title="No notifications yet"
@@ -186,6 +236,13 @@ export default function HistoryScreen() {
           </Pressable>
         ) : null}
       </View>
+
+      <HistoryFilterBar
+        filters={filters}
+        scheme={scheme}
+        onChange={handleFiltersChange}
+        onOpenAppPicker={handleOpenAppPicker}
+      />
 
       <FlatList
         data={entries}

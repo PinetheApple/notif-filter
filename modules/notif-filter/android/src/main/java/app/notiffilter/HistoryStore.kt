@@ -88,17 +88,52 @@ class HistoryStore(context: Context) {
     }
 
     /**
-     * Paginated query. Returns entries older than [beforeTs] (exclusive),
-     * ordered by timestamp DESC (newest first), limited to [limit].
+     * Paginated query, newest first unless [ascending]. Returns entries strictly
+     * beyond [beforeTs] in the sort direction, limited to [limit]. Optional
+     * filters compose: a case-insensitive LIKE [query] over title, text, and
+     * appLabel; an exact-match [packages] list; an exact [disposition].
      */
-    fun query(limit: Int, beforeTs: Long?): List<HistoryEntry> {
+    fun query(
+        limit: Int,
+        beforeTs: Long?,
+        query: String? = null,
+        packages: List<String>? = null,
+        disposition: String? = null,
+        ascending: Boolean = false
+    ): List<HistoryEntry> {
         val db = dbHelper.readableDatabase
-        val selection = if (beforeTs != null) "timestamp < ?" else null
-        val selectionArgs = if (beforeTs != null) arrayOf(beforeTs.toString()) else null
+        val clauses = mutableListOf<String>()
+        val args = mutableListOf<String>()
+
+        if (beforeTs != null) {
+            clauses.add(if (ascending) "timestamp > ?" else "timestamp < ?")
+            args.add(beforeTs.toString())
+        }
+        val trimmed = query?.trim()
+        if (!trimmed.isNullOrEmpty()) {
+            val like = "%${escapeLike(trimmed)}%"
+            clauses.add(
+                "(title LIKE ? ESCAPE '\\' OR text LIKE ? ESCAPE '\\' " +
+                "OR appLabel LIKE ? ESCAPE '\\')"
+            )
+            repeat(3) { args.add(like) }
+        }
+        if (!packages.isNullOrEmpty()) {
+            clauses.add("package IN (${packages.joinToString(", ") { "?" }})")
+            args.addAll(packages)
+        }
+        if (disposition != null) {
+            clauses.add("disposition = ?")
+            args.add(disposition)
+        }
 
         val cursor: Cursor = db.query(
-            TABLE, COLUMNS, selection, selectionArgs,
-            null, null, "timestamp DESC", limit.toString()
+            TABLE, COLUMNS,
+            if (clauses.isEmpty()) null else clauses.joinToString(" AND "),
+            if (args.isEmpty()) null else args.toTypedArray(),
+            null, null,
+            if (ascending) "timestamp ASC" else "timestamp DESC",
+            limit.toString()
         )
         return cursor.use { c ->
             val entries = mutableListOf<HistoryEntry>()
@@ -108,6 +143,10 @@ class HistoryStore(context: Context) {
             entries
         }
     }
+
+    /** User input goes into LIKE patterns, so its wildcards become literals. */
+    private fun escapeLike(input: String): String =
+        input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     /** Delete all entries. */
     fun deleteAll() {

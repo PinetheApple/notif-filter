@@ -1,4 +1,3 @@
-import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import { ClockCounterClockwise, FadersHorizontal, Gear } from 'phosphor-react-native';
