@@ -4,6 +4,7 @@ import { create } from 'zustand';
 export const PICKER_PURPOSE = {
   ruleScope: 'ruleScope',
   ignoredApps: 'ignoredApps',
+  historyFilter: 'historyFilter',
 } as const;
 
 export type PickerPurpose = (typeof PICKER_PURPOSE)[keyof typeof PICKER_PURPOSE];
@@ -31,3 +32,7 @@ export const usePickerStore = create<PickerState>((set) => ({
       return { selected: [...s.selected, pkg] };
     }),
 }));
+
+export function sameSelection(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((pkg, i) => pkg === b[i]);
+}
