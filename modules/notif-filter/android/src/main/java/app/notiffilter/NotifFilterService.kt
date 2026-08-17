@@ -170,6 +170,11 @@ class NotifFilterService : NotificationListenerService() {
 
         val settings = ruleStore.settings
         if (RuleEngine.isExempt(content, settings)) return false
+
+        // OEM launchers post empty aggregate shells — no title, body, or extras —
+        // which render as blank cards and can match no rule. Drop them before eval.
+        if (content.isBlank()) return false
+
         // Rows are keyed by notification, so backfilling a recorded notification
         // would re-evaluate it and overwrite its row. Skip those.
         val id = HistoryEntry.deriveId(sbn.key ?: "", sbn.postTime)
