@@ -480,4 +480,32 @@ class RuleEngineTest {
         assertEquals(Decision.BLOCK, result.decision)
         assertEquals("r1", result.ruleId)
     }
+
+    // ── Blank content detection ──────────────────────────────────────────────
+
+    @Test
+    fun `content with no renderable fields is blank`() {
+        assertTrue(notif().isBlank())
+    }
+
+    @Test
+    fun `whitespace-only fields are blank`() {
+        assertTrue(notif(title = "  ", text = " ").isBlank())
+    }
+
+    @Test
+    fun `a title alone is not blank`() {
+        assertFalse(notif(title = "Title").isBlank())
+    }
+
+    @Test
+    fun `a body alone is not blank`() {
+        assertFalse(notif(text = "Body").isBlank())
+    }
+
+    @Test
+    fun `an auxiliary field alone is not blank`() {
+        val content = NotificationContent("com.example", "", "", "sub", "", "", "", "", false)
+        assertFalse(content.isBlank())
+    }
 }

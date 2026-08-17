@@ -27,6 +27,11 @@ data class NotificationContent(
     val textLines: String,
     val isOngoing: Boolean
 ) {
+    /** True when none of the user-visible fields carry any content. */
+    fun isBlank(): Boolean =
+        title.isBlank() && text.isBlank() && subText.isBlank() && bigText.isBlank() &&
+            summaryText.isBlank() && infoText.isBlank() && textLines.isBlank()
+
     /**
      * Extract from a [StatusBarNotification]'s extras bundle.
      * Caller must provide the notification's package name, ongoing flag,
