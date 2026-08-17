@@ -34,11 +34,15 @@ data class HistoryEntry(
         /**
          * Row identity for a notification.
          *
-         * A reconnect backfill re-reads notifications that may already be recorded, so
-         * the id has to be a function of the notification rather than a fresh UUID.
+         * History is a log of notifications, not of posts: one row per notification
+         * slot, keyed by [StatusBarNotification.key]. A repost (same key, fresh
+         * postTime) replaces the existing row instead of adding one. Keyless posts
+         * fall back to postTime so they stay distinct. The id must be a function of
+         * the notification, not a fresh UUID, because reconnect backfill re-reads
+         * notifications that may already be recorded.
          */
         fun deriveId(notifKey: String, postTime: Long): String =
-            "${notifKey.take(MAX_KEY_LEN)}#$postTime"
+            if (notifKey.isNotEmpty()) notifKey.take(MAX_KEY_LEN) else "#$postTime"
 
         const val MAX_KEY_LEN = 256
     }
@@ -51,6 +55,13 @@ class HistoryStore(context: Context) {
     /** Insert a new entry and auto-prune past [maxEntries]. */
     fun insert(entry: HistoryEntry, maxEntries: Int = DEFAULT_MAX_ENTRIES) {
         val db = dbHelper.writableDatabase
+        // A repost replaces the row but keeps its feed position from first sight.
+        val firstSeen = db.query(
+            TABLE, arrayOf("timestamp"), "id = ?", arrayOf(entry.id),
+            null, null, null
+        ).use { c ->
+            if (c.moveToFirst()) c.getLong(0) else null
+        }
         val values = ContentValues().apply {
             put("id", entry.id)
             put("package", entry.packageName)
@@ -68,7 +79,7 @@ class HistoryStore(context: Context) {
             put("matchedSegment", entry.matchedSegment?.take(MAX_SHORT_LEN))
             put("notifKey", entry.notifKey.take(HistoryEntry.MAX_KEY_LEN))
             put("recovered", if (entry.recovered) 1 else 0)
-            put("timestamp", entry.timestamp)
+            put("timestamp", firstSeen ?: entry.timestamp)
             put("postTime", entry.postTime)
         }
         db.insertWithOnConflict(TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE)

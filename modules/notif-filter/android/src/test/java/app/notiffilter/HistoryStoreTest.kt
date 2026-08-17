@@ -62,18 +62,18 @@ class HistoryStoreTest {
     // ── Backfill identity and dedup ───────────────────────────────────────────
 
     @Test
-    fun `deriveId is stable for the same key and postTime`() {
+    fun `deriveId is stable for the same notification across posts`() {
         assertEquals(
             HistoryEntry.deriveId("0|com.gmail|1|tag|10123", 500L),
-            HistoryEntry.deriveId("0|com.gmail|1|tag|10123", 500L)
+            HistoryEntry.deriveId("0|com.gmail|1|tag|10123", 501L)
         )
     }
 
     @Test
-    fun `deriveId separates the same key at different postTimes`() {
+    fun `deriveId falls back to postTime when the key is missing`() {
         assertNotEquals(
-            HistoryEntry.deriveId("0|com.gmail|1|tag|10123", 500L),
-            HistoryEntry.deriveId("0|com.gmail|1|tag|10123", 501L)
+            HistoryEntry.deriveId("", 500L),
+            HistoryEntry.deriveId("", 501L)
         )
     }
 
@@ -122,6 +122,17 @@ class HistoryStoreTest {
     }
 
     @Test
+    fun `backfill skips a repost of an already recorded notification`() {
+        val store = store()
+        val key = "0|com.gmail|1|null|1"
+        store.insert(entry(HistoryEntry.deriveId(key, 100L), 100L).copy(notifKey = key))
+
+        assertEquals(0, backfill(store, listOf(key to 684L)))
+
+        assertEquals(1, store.query(10, null).size)
+    }
+
+    @Test
     fun `reinserting the same derived id replaces rather than duplicates`() {
         val store = store()
         val id = HistoryEntry.deriveId("0|com.gmail|1|null|1", 100L)
@@ -132,6 +143,20 @@ class HistoryStoreTest {
         val entries = store.query(10, null)
         assertEquals(1, entries.size)
         assertEquals("Updated", entries[0].title)
+    }
+
+    @Test
+    fun `a repost updates the row in place and keeps its feed position`() {
+        val store = store()
+        val key = "0|com.example.app|1|null|10416"
+
+        store.insert(entry(HistoryEntry.deriveId(key, 500L), 500L).copy(notifKey = key))
+        store.insert(entry(HistoryEntry.deriveId(key, 684L), 684L).copy(notifKey = key, title = "Updated"))
+
+        val stored = store.query(10, null).single()
+        assertEquals("Updated", stored.title)
+        assertEquals(500L, stored.timestamp)
+        assertEquals(684L, stored.postTime)
     }
 
     // ── New columns ───────────────────────────────────────────────────────────

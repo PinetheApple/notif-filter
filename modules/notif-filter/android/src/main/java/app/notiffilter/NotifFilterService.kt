@@ -170,9 +170,8 @@ class NotifFilterService : NotificationListenerService() {
 
         val settings = ruleStore.settings
         if (RuleEngine.isExempt(content, settings)) return false
-
-        // Reconnects are frequent and most active notifications are already logged;
-        // re-recording them would re-date the row and duplicate the feed.
+        // Rows are keyed by notification, so backfilling a recorded notification
+        // would re-evaluate it and overwrite its row. Skip those.
         val id = HistoryEntry.deriveId(sbn.key ?: "", sbn.postTime)
         if (recovered && historyStore.exists(id)) return false
 
