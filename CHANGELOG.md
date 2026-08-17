@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.0.8](https://github.com/PinetheApple/notif-filter/compare/v0.0.7...v0.0.8) (2026-08-17)
+
+
+### Features
+
+* history is a log of notifications, not of posts ([#93](https://github.com/PinetheApple/notif-filter/issues/93)) ([b156b3a](https://github.com/PinetheApple/notif-filter/commit/b156b3aa4ecda0193bcd4364a6d27c8a8a5a815d))
+* request a battery-optimization exemption for the listener ([#90](https://github.com/PinetheApple/notif-filter/issues/90)) ([207ccb9](https://github.com/PinetheApple/notif-filter/commit/207ccb93ec64330a6ee303f94567291ba3abe6e2))
+* search, filter, and sort history entries ([#96](https://github.com/PinetheApple/notif-filter/issues/96)) ([a2b4ba5](https://github.com/PinetheApple/notif-filter/commit/a2b4ba595a68f4b98e3053dddad1bf8840ed3cd3))
+
+
+### Bug Fixes
+
+* drop contentless notifications instead of logging blank cards ([#94](https://github.com/PinetheApple/notif-filter/issues/94)) ([1a8fa06](https://github.com/PinetheApple/notif-filter/commit/1a8fa068d40f296d8188ac69fde7ea393dbd0f4b))
+* prune history to the configured log size ([#88](https://github.com/PinetheApple/notif-filter/issues/88)) ([592009b](https://github.com/PinetheApple/notif-filter/commit/592009b8cc3eb838c7395a4175f6489d172de502))
+* stop recording group summaries as history rows ([#91](https://github.com/PinetheApple/notif-filter/issues/91)) ([6d24805](https://github.com/PinetheApple/notif-filter/commit/6d248050e8d842c6a5d06619b4dbebcc05e171b2))
+
 ## [0.0.7](https://github.com/PinetheApple/notif-filter/compare/v0.0.6...v0.0.7) (2026-08-14)
 
 
