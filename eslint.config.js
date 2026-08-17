@@ -5,7 +5,7 @@ const { defineConfig, globalIgnores } = require('eslint/config');
 const { createTypeScriptImportResolver } = require('eslint-import-resolver-typescript');
 
 module.exports = defineConfig([
-  globalIgnores(['android/', 'ios/', 'dist/', 'web-build/', 'expo-env.d.ts']),
+  globalIgnores(['android/', 'ios/', 'dist/', 'web-build/', 'expo-env.d.ts', '.expo/']),
   expoConfig,
   {
     // expo's config leaves import/resolver on the node resolver, which cannot follow the
@@ -13,5 +13,11 @@ module.exports = defineConfig([
     settings: {
       'import/resolver-next': [createTypeScriptImportResolver({ project: './tsconfig.json' })],
     },
+  },
+  {
+    // Tailwind loads its config through a CJS require, and nativewind/preset has no ESM
+    // entry, so an `import` of it resolves in the editor but not at build time.
+    files: ['*.config.ts'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
 ]);

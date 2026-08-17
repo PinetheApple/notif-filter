@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'nativewind';
+import { useColorScheme, colorScheme as nativewindColorScheme } from 'nativewind';
 
 import '@/global.css';
 import { Onboarding } from '@/components/Onboarding';
@@ -56,7 +56,6 @@ export default function RootLayout() {
   const loadSettings = useSettingsStore((s) => s.loadFromNative);
   const settingsLoaded = useSettingsStore((s) => s.loaded);
   const onboardingDone = useSettingsStore((s) => s.onboardingDone);
-  const { setColorScheme } = useColorScheme();
 
   useEffect(() => {
     loadRules();
@@ -64,7 +63,7 @@ export default function RootLayout() {
     // Apply persisted theme on boot (NativeWind defaults to system otherwise)
     const tp = useSettingsStore.getState().themePreference;
     if (tp !== 'system') {
-      setColorScheme(tp);
+      nativewindColorScheme.set(tp);
     }
     checkPermission();
     const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
